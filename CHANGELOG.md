@@ -1,3 +1,5 @@
 ## 0.0.1
 
-* TODO: Describe initial release.
+* Support to load gif images from `network`, `assets`,`memmory`,
+* Configurable frame rate.
+

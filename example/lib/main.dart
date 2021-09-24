@@ -56,14 +56,6 @@ class _MyHomePageState extends State<MyHomePage> {
             height: 200,
             frameRate: 30,
           ),
-          GifView.asset(
-            'assets/gif2.gif',
-            height: 200,
-          ),
-          GifView.asset(
-            'assets/gif3.gif',
-            height: 200,
-          ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(
