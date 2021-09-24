@@ -1,4 +1,3 @@
-# 0.0.1
-- Initial version.
-- Load gif from `network`, `assets` and `memory`.
-- Configurable frame rate.
+## 0.0.1
+
+* TODO: Describe initial release.
