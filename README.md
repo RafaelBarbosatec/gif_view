@@ -10,30 +10,56 @@ For general information about developing packages, see the Dart guide for
 and the Flutter guide for
 [developing packages and plugins](https://flutter.dev/developing-packages). 
 -->
+# GifView
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+Load GIF images and can set framerate
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+With `GifView` you can load GIF images of easy way and can configure frameRate.
+
+- Load from `Assets`;
+- Load from `Network`;
+- Load from `Memory`;
+- Set frame rate;
+- Listen when start (`onStart`), change frame (`onChange`) and finish (`onFinish`) animation.
+- Set `progress` while loading GIF
 
 ## Getting started
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+Add `gif_view` as a [dependency in your pubspec.yaml file](https://flutter.dev/using-packages/).
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
+### GIF from Asset
 
 ```dart
-const like = 'sample';
+  GifView.asset(
+    'assets/gif1.gif',
+    height: 200,
+    width: 200,
+    frameRate: 30, // default is 15 FPS
+  )
 ```
 
-## Additional information
 
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+### GIF from Network
+
+```dart
+  GifView.network(
+    'https://www.showmetech.com.br/wp-content/uploads/2015/09/happy-minion-gif.gif',
+    height: 200,
+    width: 200,
+  )
+```
+
+
+### GIF from Memory
+
+```dart
+  GifView.memory(
+    _bytes,
+    height: 200,
+    width: 200,
+  )
+```
