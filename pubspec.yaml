@@ -1,6 +1,6 @@
 name: gif_view
 description: A new Flutter project.
-version: 1.0.0+1
+version: 0.0.1+1
 homepage: https://github.com/RafaelBarbosatec/gif_view
 
 environment:
@@ -17,5 +17,3 @@ dev_dependencies:
   flutter_lints: ^1.0.0
 
 flutter:
-
-  uses-material-design: true
