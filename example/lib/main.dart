@@ -31,8 +31,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
- 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,14 +67,14 @@ class _MyHomePageState extends State<MyHomePage> {
             height: 200,
           ),
           GifView.network(
-            'https://www.mailbiz.com.br/wp-content/uploads/2019/12/tenor.gif',
+            'https://gifs.eco.br/wp-content/uploads/2022/05/gifs-de-homem-aranha-no-aranhaverso-20.gif',
             height: 200,
             progress: const Center(
               child: CircularProgressIndicator(),
             ),
           ),
           GifView.network(
-            'https://www.agenciaunius.com.br/wp-content/uploads/2017/07/Gif-animado-18.gif',
+            'https://gifs.eco.br/wp-content/uploads/2021/08/engracados-memes-gif-19.gif',
             height: 200,
           ),
         ],

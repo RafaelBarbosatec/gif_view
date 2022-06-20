@@ -18,10 +18,17 @@ import 'package:flutter/material.dart';
 /// Rafaelbarbosatec
 /// on 23/09/21
 
-final Map<String, List<ImageInfo>> _cache = {};
+class GifFrame {
+  final ImageInfo imageInfo;
+  final Duration duration;
+
+  GifFrame(this.imageInfo, this.duration);
+}
+
+final Map<String, List<GifFrame>> _cache = {};
 
 class GifView extends StatefulWidget {
-  final int frameRate;
+  final int? frameRate;
   final VoidCallback? onFinish;
   final VoidCallback? onStart;
   final ValueChanged<int>? onFrame;
@@ -44,7 +51,7 @@ class GifView extends StatefulWidget {
   GifView.network(
     String url, {
     Key? key,
-    this.frameRate = 15,
+    this.frameRate,
     this.loop = true,
     this.height,
     this.width,
@@ -68,7 +75,7 @@ class GifView extends StatefulWidget {
   GifView.asset(
     String asset, {
     Key? key,
-    this.frameRate = 15,
+    this.frameRate,
     this.loop = true,
     this.height,
     this.width,
@@ -137,14 +144,13 @@ class GifView extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _GifViewState createState() => _GifViewState();
+  GifViewState createState() => GifViewState();
 }
 
-class _GifViewState extends State<GifView> with TickerProviderStateMixin {
-  List<ImageInfo> frames = [];
+class GifViewState extends State<GifView> with TickerProviderStateMixin {
+  List<GifFrame> frames = [];
+  bool _running = false;
   int currentIndex = 0;
-  AnimationController? _controller;
-  Tween<int> tweenFrames = Tween();
 
   @override
   void initState() {
@@ -152,7 +158,7 @@ class _GifViewState extends State<GifView> with TickerProviderStateMixin {
     super.initState();
   }
 
-  ImageInfo get currentFrame => frames[currentIndex];
+  GifFrame get currentFrame => frames[currentIndex];
 
   @override
   Widget build(BuildContext context) {
@@ -164,10 +170,10 @@ class _GifViewState extends State<GifView> with TickerProviderStateMixin {
       );
     }
     return RawImage(
-      image: currentFrame.image,
+      image: currentFrame.imageInfo.image,
       width: widget.width,
       height: widget.height,
-      scale: currentFrame.scale,
+      scale: currentFrame.imageInfo.scale,
       fit: widget.fit,
       color: widget.color,
       colorBlendMode: widget.colorBlendMode,
@@ -204,8 +210,8 @@ class _GifViewState extends State<GifView> with TickerProviderStateMixin {
                 : "";
   }
 
-  Future<List<ImageInfo>> fetchGif(ImageProvider provider) async {
-    List<ImageInfo> frameList = [];
+  Future<List<GifFrame>> _fetchGif(ImageProvider provider) async {
+    List<GifFrame> frameList = [];
     dynamic data;
     String key = _getKeyImage(provider);
     if (_cache.containsKey(key)) {
@@ -232,55 +238,74 @@ class _GifViewState extends State<GifView> with TickerProviderStateMixin {
       data = provider.bytes;
     }
 
-    Codec? codec = await PaintingBinding.instance
-        ?.instantiateImageCodec(data.buffer.asUint8List());
+    Codec codec = await PaintingBinding.instance
+        .instantiateImageCodec(data.buffer.asUint8List());
 
-    if (codec != null) {
-      for (int i = 0; i < codec.frameCount; i++) {
-        FrameInfo frameInfo = await codec.getNextFrame();
-        //scale ??
-        frameList.add(ImageInfo(image: frameInfo.image));
+    for (int i = 0; i < codec.frameCount; i++) {
+      FrameInfo frameInfo = await codec.getNextFrame();
+      Duration duration = frameInfo.duration;
+      if (widget.frameRate != null) {
+        duration = Duration(milliseconds: (1000 / widget.frameRate!).ceil());
       }
-      _cache.putIfAbsent(key, () => frameList);
+      frameList.add(
+        GifFrame(
+          ImageInfo(image: frameInfo.image),
+          duration,
+        ),
+      );
     }
+    _cache.putIfAbsent(key, () => frameList);
     return frameList;
   }
 
   FutureOr _loadImage() async {
-    frames = await fetchGif(widget.image);
-    tweenFrames = IntTween(begin: 0, end: frames.length - 1);
-    int milli = ((frames.length / widget.frameRate) * 1000).ceil();
-    Duration duration = Duration(
-      milliseconds: milli,
-    );
-    _controller = AnimationController(vsync: this, duration: duration);
-    _controller?.addListener(_listener);
-    widget.onStart?.call();
-    _controller?.forward(from: 0.0);
+    frames = await _fetchGif(widget.image);
+
+    if (mounted) {
+      setState(() {
+        widget.onStart?.call();
+        play();
+      });
+    }
   }
 
-  void _listener() {
-    int newFrame = tweenFrames.transform(_controller!.value);
-    if (currentIndex != newFrame) {
-      if (mounted) {
-        setState(() {
-          currentIndex = newFrame;
-        });
-        widget.onFrame?.call(newFrame);
+  void _startAnimation() async {
+    if (_running) {
+      await Future.delayed(currentFrame.duration);
+      if (currentIndex < frames.length - 1) {
+        if (mounted) {
+          setState(() {
+            currentIndex++;
+          });
+          widget.onFrame?.call(currentIndex);
+        }
+      } else if (widget.loop) {
+        currentIndex = 0;
+      } else {
+        widget.onFinish?.call();
+        _running = false;
       }
+      _startAnimation();
     }
-    if (_controller?.status == AnimationStatus.completed) {
-      widget.onFinish?.call();
-      if (widget.loop) {
-        _controller?.forward(from: 0.0);
-      }
-    }
+  }
+
+  void play() {
+    _running = true;
+    _startAnimation();
+  }
+
+  void pause() {
+    _running = false;
+  }
+
+  void stop() {
+    _running = false;
+    currentIndex = 0;
   }
 
   @override
   void dispose() {
-    _controller?.removeListener(_listener);
-    _controller?.dispose();
+    stop();
     super.dispose();
   }
 }
