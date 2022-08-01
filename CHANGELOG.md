@@ -1,3 +1,10 @@
+## 0.1.1
+
+* Adds `package` and `bundle` params in `GifView.asset`
+* Adds `scale` and `headers` params in `GifView.network`
+* Adds `scale` param in `GifView.memory`
+
+
 ## 0.1.0
 
 * Remove warn flutter 3.0.

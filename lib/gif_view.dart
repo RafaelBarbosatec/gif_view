@@ -69,7 +69,9 @@ class GifView extends StatefulWidget {
     this.onFinish,
     this.onStart,
     this.onFrame,
-  })  : image = NetworkImage(url),
+    double scale = 1.0,
+    Map<String, String>? headers,
+  })  : image = NetworkImage(url, scale: scale, headers: headers),
         super(key: key);
 
   GifView.asset(
@@ -93,7 +95,9 @@ class GifView extends StatefulWidget {
     this.onFinish,
     this.onStart,
     this.onFrame,
-  })  : image = AssetImage(asset),
+    String? package,
+    AssetBundle? bundle,
+  })  : image = AssetImage(asset, package: package, bundle: bundle),
         super(key: key);
 
   GifView.memory(
@@ -117,7 +121,8 @@ class GifView extends StatefulWidget {
     this.onFinish,
     this.onStart,
     this.onFrame,
-  })  : image = MemoryImage(bytes),
+    double scale = 1.0,
+  })  : image = MemoryImage(bytes, scale: scale),
         super(key: key);
 
   const GifView({
