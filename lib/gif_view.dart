@@ -243,7 +243,7 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
       data = provider.bytes;
     }
 
-    Codec codec = await PaintingBinding.instance
+    Codec codec = await PaintingBinding.instance!
         .instantiateImageCodec(data.buffer.asUint8List());
 
     for (int i = 0; i < codec.frameCount; i++) {
