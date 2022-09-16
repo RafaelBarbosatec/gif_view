@@ -1,3 +1,7 @@
+## Next
+
+* Update ImageCodec
+
 ## 0.1.1
 
 * Adds `package` and `bundle` params in `GifView.asset`

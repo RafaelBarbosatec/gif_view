@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -243,8 +242,10 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
       data = provider.bytes;
     }
 
-    Codec codec = await PaintingBinding.instance
-        .instantiateImageCodec(data.buffer.asUint8List());
+    Codec codec = await instantiateImageCodec(
+      data.buffer.asUint8List(),
+      allowUpscaling: false,
+    );
 
     for (int i = 0; i < codec.frameCount; i++) {
       FrameInfo frameInfo = await codec.getNextFrame();
