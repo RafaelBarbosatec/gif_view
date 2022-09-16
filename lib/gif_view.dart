@@ -1,9 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 ///
 /// Created by
@@ -46,6 +46,7 @@ class GifView extends StatefulWidget {
   final bool invertColors;
   final FilterQuality filterQuality;
   final bool isAntiAlias;
+  final ValueChanged<Object?>? onError;
 
   GifView.network(
     String url, {
@@ -68,6 +69,7 @@ class GifView extends StatefulWidget {
     this.onFinish,
     this.onStart,
     this.onFrame,
+    this.onError,
     double scale = 1.0,
     Map<String, String>? headers,
   })  : image = NetworkImage(url, scale: scale, headers: headers),
@@ -94,6 +96,7 @@ class GifView extends StatefulWidget {
     this.onFinish,
     this.onStart,
     this.onFrame,
+    this.onError,
     String? package,
     AssetBundle? bundle,
   })  : image = AssetImage(asset, package: package, bundle: bundle),
@@ -120,6 +123,7 @@ class GifView extends StatefulWidget {
     this.onFinish,
     this.onStart,
     this.onFrame,
+    this.onError,
     double scale = 1.0,
   })  : image = MemoryImage(bytes, scale: scale),
         super(key: key);
@@ -145,6 +149,7 @@ class GifView extends StatefulWidget {
     this.onFinish,
     this.onStart,
     this.onFrame,
+    this.onError,
   }) : super(key: key);
 
   @override
@@ -191,18 +196,16 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
     );
   }
 
-  final HttpClient _sharedHttpClient = HttpClient()..autoUncompress = false;
-
-  HttpClient get _httpClient {
-    HttpClient client = _sharedHttpClient;
-    assert(() {
-      if (debugNetworkImageHttpClientProvider != null) {
-        client = debugNetworkImageHttpClientProvider!();
-      }
-      return true;
-    }());
-    return client;
-  }
+  // HttpClient get _httpClient {
+  //   HttpClient client = HttpClient()..autoUncompress = false;
+  //   // assert(() {
+  //   //   if (debugNetworkImageHttpClientProvider != null) {
+  //   //     client = debugNetworkImageHttpClientProvider!();
+  //   //   }
+  //   //   return true;
+  //   // }());
+  //   return client;
+  // }
 
   String _getKeyImage(ImageProvider provider) {
     return provider is NetworkImage
@@ -216,51 +219,58 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
 
   Future<List<GifFrame>> _fetchGif(ImageProvider provider) async {
     List<GifFrame> frameList = [];
-    dynamic data;
-    String key = _getKeyImage(provider);
-    if (_cache.containsKey(key)) {
-      frameList = _cache[key]!;
-      return frameList;
-    }
-    if (provider is NetworkImage) {
-      final Uri resolved = Uri.base.resolve(provider.url);
-      final HttpClientRequest request = await _httpClient.getUrl(resolved);
-      provider.headers?.forEach((String name, String value) {
-        request.headers.add(name, value);
-      });
-      final HttpClientResponse response = await request.close();
-      data = await consolidateHttpClientResponseBytes(
-        response,
-      );
-    } else if (provider is AssetImage) {
-      AssetBundleImageKey key =
-          await provider.obtainKey(const ImageConfiguration());
-      data = await key.bundle.load(key.name);
-    } else if (provider is FileImage) {
-      data = await provider.file.readAsBytes();
-    } else if (provider is MemoryImage) {
-      data = provider.bytes;
-    }
-
-    Codec codec = await instantiateImageCodec(
-      data.buffer.asUint8List(),
-      allowUpscaling: false,
-    );
-
-    for (int i = 0; i < codec.frameCount; i++) {
-      FrameInfo frameInfo = await codec.getNextFrame();
-      Duration duration = frameInfo.duration;
-      if (widget.frameRate != null) {
-        duration = Duration(milliseconds: (1000 / widget.frameRate!).ceil());
+    try {
+      Uint8List? data;
+      String key = _getKeyImage(provider);
+      if (_cache.containsKey(key)) {
+        frameList = _cache[key]!;
+        return frameList;
       }
-      frameList.add(
-        GifFrame(
-          ImageInfo(image: frameInfo.image),
-          duration,
-        ),
+      if (provider is NetworkImage) {
+        final Uri resolved = Uri.base.resolve(provider.url);
+        Map<String, String> headers = {};
+        provider.headers?.forEach((String name, String value) {
+          headers[name] = value;
+        });
+        final response = await http.get(resolved, headers: headers);
+        data = response.bodyBytes;
+      } else if (provider is AssetImage) {
+        AssetBundleImageKey key =
+            await provider.obtainKey(const ImageConfiguration());
+        final d = await key.bundle.load(key.name);
+        data = d.buffer.asUint8List();
+      } else if (provider is FileImage) {
+        data = await provider.file.readAsBytes();
+      } else if (provider is MemoryImage) {
+        data = provider.bytes;
+      }
+
+      if (data == null) {
+        return [];
+      }
+
+      Codec codec = await instantiateImageCodec(
+        data,
+        allowUpscaling: false,
       );
+
+      for (int i = 0; i < codec.frameCount; i++) {
+        FrameInfo frameInfo = await codec.getNextFrame();
+        Duration duration = frameInfo.duration;
+        if (widget.frameRate != null) {
+          duration = Duration(milliseconds: (1000 / widget.frameRate!).ceil());
+        }
+        frameList.add(
+          GifFrame(
+            ImageInfo(image: frameInfo.image),
+            duration,
+          ),
+        );
+      }
+      _cache.putIfAbsent(key, () => frameList);
+    } catch (e) {
+      widget.onError?.call(e);
     }
-    _cache.putIfAbsent(key, () => frameList);
     return frameList;
   }
 

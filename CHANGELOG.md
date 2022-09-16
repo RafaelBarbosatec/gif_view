@@ -1,6 +1,7 @@
-## Next
+## 0.2.0
 
 * Update ImageCodec
+* Adds web support
 
 ## 0.1.1
 
