@@ -29,6 +29,7 @@ final Map<String, List<GifFrame>> _cache = {};
 
 class GifView extends StatefulWidget {
   final int? frameRate;
+  final bool isAnimated;
   final VoidCallback? onFinish;
   final VoidCallback? onStart;
   final ValueChanged<int>? onFrame;
@@ -53,6 +54,7 @@ class GifView extends StatefulWidget {
     String url, {
     Key? key,
     this.frameRate,
+    this.isAnimated = true,
     this.loop = true,
     this.height,
     this.width,
@@ -79,6 +81,7 @@ class GifView extends StatefulWidget {
   GifView.asset(
     String asset, {
     Key? key,
+    this.isAnimated = true,
     this.frameRate,
     this.loop = true,
     this.height,
@@ -106,6 +109,7 @@ class GifView extends StatefulWidget {
   GifView.memory(
     Uint8List bytes, {
     Key? key,
+    this.isAnimated = true,
     this.frameRate = 15,
     this.loop = true,
     this.height,
@@ -131,6 +135,7 @@ class GifView extends StatefulWidget {
 
   const GifView({
     Key? key,
+    this.isAnimated = true,
     this.frameRate = 15,
     required this.image,
     this.loop = true,
@@ -166,6 +171,15 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
   void initState() {
     Future.delayed(Duration.zero, _loadImage);
     super.initState();
+  }
+
+  @override
+  void didUpdateWidget(covariant GifView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isAnimated != widget.isAnimated ||
+        oldWidget.loop != widget.loop) {
+      _loadImage();
+    }
   }
 
   GifFrame get currentFrame => frames[currentIndex];
@@ -281,7 +295,7 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
     if (mounted) {
       setState(() {
         widget.onStart?.call();
-        play();
+        (widget.isAnimated) ? play() : pause();
       });
     }
   }
