@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
+// ignore: unnecessary_import
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
@@ -210,17 +211,6 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
       isAntiAlias: widget.isAntiAlias,
     );
   }
-
-  // HttpClient get _httpClient {
-  //   HttpClient client = HttpClient()..autoUncompress = false;
-  //   // assert(() {
-  //   //   if (debugNetworkImageHttpClientProvider != null) {
-  //   //     client = debugNetworkImageHttpClientProvider!();
-  //   //   }
-  //   //   return true;
-  //   // }());
-  //   return client;
-  // }
 
   String _getKeyImage(ImageProvider provider) {
     return provider is NetworkImage
