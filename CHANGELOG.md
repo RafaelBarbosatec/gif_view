@@ -1,3 +1,7 @@
+## 0.2.2
+
+* Adds `invertedAnimation` param. Thanks [viniciusoliverrs](https://github.com/viniciusoliverrs)
+
 ## 0.2.1
 
 * fix: Error: Type 'Uint8List' not found. [PR #5](https://github.com/RafaelBarbosatec/gif_view/pull/5)

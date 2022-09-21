@@ -1,7 +1,7 @@
 import 'dart:async';
-import 'dart:ui';
 // ignore: unnecessary_import
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +31,7 @@ final Map<String, List<GifFrame>> _cache = {};
 class GifView extends StatefulWidget {
   final int? frameRate;
   final bool isAnimated;
-  final bool invertAnimated;
+  final bool invertedAnimation;
   final VoidCallback? onFinish;
   final VoidCallback? onStart;
   final ValueChanged<int>? onFrame;
@@ -57,7 +57,7 @@ class GifView extends StatefulWidget {
     Key? key,
     this.frameRate,
     this.isAnimated = true,
-    this.invertAnimated = false,
+    this.invertedAnimation = false,
     this.loop = true,
     this.height,
     this.width,
@@ -85,7 +85,7 @@ class GifView extends StatefulWidget {
     String asset, {
     Key? key,
     this.isAnimated = true,
-    this.invertAnimated = false,
+    this.invertedAnimation = false,
     this.frameRate,
     this.loop = true,
     this.height,
@@ -114,7 +114,7 @@ class GifView extends StatefulWidget {
     Uint8List bytes, {
     Key? key,
     this.isAnimated = true,
-    this.invertAnimated = false,
+    this.invertedAnimation = false,
     this.frameRate = 15,
     this.loop = true,
     this.height,
@@ -141,7 +141,7 @@ class GifView extends StatefulWidget {
   const GifView({
     Key? key,
     this.isAnimated = true,
-    this.invertAnimated = false,
+    this.invertedAnimation = false,
     this.frameRate = 15,
     required this.image,
     this.loop = true,
@@ -183,22 +183,13 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
   void didUpdateWidget(covariant GifView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.isAnimated != widget.isAnimated ||
-        oldWidget.loop != widget.loop) {
+        oldWidget.loop != widget.loop ||
+        oldWidget.invertedAnimation != widget.invertedAnimation) {
       _loadImage();
-    }
-
-    if (oldWidget.invertAnimated != widget.invertAnimated) {
-      _invertAnimation();
     }
   }
 
   GifFrame get currentFrame => frames[currentIndex];
-
-  _invertAnimation() {
-    setState(() {
-      frames = frames.reversed.toList();
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -296,6 +287,10 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
 
   FutureOr _loadImage() async {
     frames = await _fetchGif(widget.image);
+
+    if (widget.invertedAnimation) {
+      frames = frames.reversed.toList();
+    }
 
     if (mounted) {
       setState(() {
