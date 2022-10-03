@@ -5,7 +5,7 @@
 ## 0.2.1
 
 * fix: Error: Type 'Uint8List' not found. [PR #5](https://github.com/RafaelBarbosatec/gif_view/pull/5)
-* feat: isAnimated. [PR #6](https://github.com/RafaelBarbosatec/gif_view/pull/6). Thanks [diorep](https://github.com/diorep)
+* feat: isAnimated. [PR #6](https://github.com/RafaelBarbosatec/gif_view/pull/6). Thanks [iamdiosilva](https://github.com/iamdiosilva)
 
 ## 0.2.0
 
