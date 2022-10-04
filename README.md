@@ -65,3 +65,31 @@ Add `gif_view` as a [dependency in your pubspec.yaml file](https://flutter.dev/u
     width: 200,
   )
 ```
+
+## Atributes
+
+| Name | Description  | Default  |
+| ------- | --- | --- |
+| frameRate | - | - | 
+| isAnimated | - | `true` |
+| invertedAnimation | - | `false` |
+| loop | - | `true` |
+| height | - | - | 
+| width | - | - | 
+| progress | - |
+| fit | - | - | 
+| color | - | - | 
+| colorBlendMode | - | - | 
+| alignment | - | `Alignment.center` |
+| repeat | - |  `ImageRepeat.noRepeat` |
+| centerSlice | - | - | 
+| matchTextDirection | - | `false` |
+| invertColors | - | `false` |
+| filterQuality | - | `FilterQuality.low` |
+| isAntiAlias | - | `false` |
+| onFinish | - | - | 
+| onStart | - | - | 
+| onFrame | - | - | 
+| onError | - | - | 
+| scale | - | `1.0` |
+| headers | - | - | 
