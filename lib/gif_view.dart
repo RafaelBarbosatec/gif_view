@@ -280,7 +280,11 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
       }
       _cache.putIfAbsent(key, () => frameList);
     } catch (e) {
-      widget.onError?.call(e);
+      if (widget.onError == null) {
+        rethrow;
+      } else {
+        widget.onError?.call(e);
+      }
     }
     return frameList;
   }
@@ -292,7 +296,7 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
       frames = frames.reversed.toList();
     }
 
-    if (mounted) {
+    if (mounted && frames.isNotEmpty) {
       setState(() {
         widget.onStart?.call();
         (widget.isAnimated) ? play() : pause();
