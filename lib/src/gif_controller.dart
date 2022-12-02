@@ -100,6 +100,11 @@ class GifController extends ChangeNotifier {
     status = GifStatus.paused;
   }
 
+  void seek(int frame) {
+    currentIndex = frame;
+    notifyListeners();
+  }
+
   void configure(List<GifFrame> frames, {bool updateFrames = false}) {
     this.frames = frames;
     if (!updateFrames) {

@@ -111,6 +111,8 @@ Add `gif_view` as a [dependency in your pubspec.yaml file](https://flutter.dev/u
 
   controller.stop();
 
+  controller.seek(34);
+
   GifStatus status = controller.status;
   // GifStatus { loading, playing, stoped, paused, reversing }
 
