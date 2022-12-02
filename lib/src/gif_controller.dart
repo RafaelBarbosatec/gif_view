@@ -69,19 +69,19 @@ class GifController extends ChangeNotifier {
 
   GifFrame get currentFrame => frames[currentIndex];
 
-  void play({bool? inverted, int? startFrame}) {
+  void play({bool? inverted, int? initialFrame}) {
     if (status == GifStatus.loading) return;
     _inverted = inverted ?? _inverted;
 
     if (status == GifStatus.stoped || status == GifStatus.paused) {
       status = _inverted ? GifStatus.reversing : GifStatus.playing;
 
-      bool isValidStartFrame = startFrame != null &&
-          startFrame > 0 &&
-          startFrame < frames.length - 1;
+      bool isValidInitialFrame = initialFrame != null &&
+          initialFrame > 0 &&
+          initialFrame < frames.length - 1;
 
-      if (isValidStartFrame) {
-        currentIndex = startFrame;
+      if (isValidInitialFrame) {
+        currentIndex = initialFrame;
       } else {
         currentIndex = status == GifStatus.reversing ? frames.length - 1 : 0;
       }

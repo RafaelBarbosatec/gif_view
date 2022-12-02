@@ -70,10 +70,8 @@ Add `gif_view` as a [dependency in your pubspec.yaml file](https://flutter.dev/u
 
 | Name | Description  | Default  |
 | ------- | --- | --- |
+| controller | - | - |
 | frameRate | - | - | 
-| isAnimated | - | `true` |
-| invertedAnimation | - | `false` |
-| loop | - | `true` |
 | height | - | - | 
 | width | - | - | 
 | progress | - |
@@ -93,3 +91,28 @@ Add `gif_view` as a [dependency in your pubspec.yaml file](https://flutter.dev/u
 | onError | - | - | 
 | scale | - | `1.0` |
 | headers | - | - | 
+
+
+## Controller
+
+```dart
+
+  GifController controller = GifController({
+    this.autoPlay = true,
+    this.loop = true,
+    bool inverted = false,
+    this.onStart,
+    this.onFinish,
+    this.onFrame,
+  });
+
+  controller.play({bool? inverted, int? initialFrame});
+
+  controller.pause();
+
+  controller.stop();
+
+  GifStatus status = controller.status;
+  // GifStatus { loading, playing, stoped, paused, reversing }
+
+```
