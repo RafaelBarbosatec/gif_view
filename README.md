@@ -116,7 +116,7 @@ Add `gif_view` as a [dependency in your pubspec.yaml file](https://flutter.dev/u
 
 ```
 
-## Example
+## Controller use simple example
 
 ```dart
 
