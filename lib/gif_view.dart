@@ -5,7 +5,11 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:gif_view/src/gif_controller.dart';
+import 'package:gif_view/src/git_frame.dart';
 import 'package:http/http.dart' as http;
+
+export 'package:gif_view/src/gif_controller.dart';
 
 ///
 /// Created by
@@ -19,24 +23,12 @@ import 'package:http/http.dart' as http;
 /// Rafaelbarbosatec
 /// on 23/09/21
 
-class GifFrame {
-  final ImageInfo imageInfo;
-  final Duration duration;
-
-  GifFrame(this.imageInfo, this.duration);
-}
-
 final Map<String, List<GifFrame>> _cache = {};
 
 class GifView extends StatefulWidget {
+  final GifController? controller;
   final int? frameRate;
-  final bool isAnimated;
-  final bool invertedAnimation;
-  final VoidCallback? onFinish;
-  final VoidCallback? onStart;
-  final ValueChanged<int>? onFrame;
   final ImageProvider image;
-  final bool loop;
   final double? height;
   final double? width;
   final Widget? progress;
@@ -51,14 +43,13 @@ class GifView extends StatefulWidget {
   final FilterQuality filterQuality;
   final bool isAntiAlias;
   final ValueChanged<Object?>? onError;
+  final Duration? fadeDuration;
 
   GifView.network(
     String url, {
     Key? key,
+    this.controller,
     this.frameRate,
-    this.isAnimated = true,
-    this.invertedAnimation = false,
-    this.loop = true,
     this.height,
     this.width,
     this.progress,
@@ -72,10 +63,8 @@ class GifView extends StatefulWidget {
     this.invertColors = false,
     this.filterQuality = FilterQuality.low,
     this.isAntiAlias = false,
-    this.onFinish,
-    this.onStart,
-    this.onFrame,
     this.onError,
+    this.fadeDuration,
     double scale = 1.0,
     Map<String, String>? headers,
   })  : image = NetworkImage(url, scale: scale, headers: headers),
@@ -84,10 +73,8 @@ class GifView extends StatefulWidget {
   GifView.asset(
     String asset, {
     Key? key,
-    this.isAnimated = true,
-    this.invertedAnimation = false,
+    this.controller,
     this.frameRate,
-    this.loop = true,
     this.height,
     this.width,
     this.progress,
@@ -101,10 +88,8 @@ class GifView extends StatefulWidget {
     this.invertColors = false,
     this.filterQuality = FilterQuality.low,
     this.isAntiAlias = false,
-    this.onFinish,
-    this.onStart,
-    this.onFrame,
     this.onError,
+    this.fadeDuration,
     String? package,
     AssetBundle? bundle,
   })  : image = AssetImage(asset, package: package, bundle: bundle),
@@ -113,10 +98,8 @@ class GifView extends StatefulWidget {
   GifView.memory(
     Uint8List bytes, {
     Key? key,
-    this.isAnimated = true,
-    this.invertedAnimation = false,
+    this.controller,
     this.frameRate = 15,
-    this.loop = true,
     this.height,
     this.width,
     this.progress,
@@ -130,21 +113,17 @@ class GifView extends StatefulWidget {
     this.invertColors = false,
     this.filterQuality = FilterQuality.low,
     this.isAntiAlias = false,
-    this.onFinish,
-    this.onStart,
-    this.onFrame,
     this.onError,
+    this.fadeDuration,
     double scale = 1.0,
   })  : image = MemoryImage(bytes, scale: scale),
         super(key: key);
 
   const GifView({
     Key? key,
-    this.isAnimated = true,
-    this.invertedAnimation = false,
-    this.frameRate = 15,
     required this.image,
-    this.loop = true,
+    this.controller,
+    this.frameRate = 15,
     this.height,
     this.width,
     this.progress,
@@ -158,10 +137,8 @@ class GifView extends StatefulWidget {
     this.invertColors = false,
     this.filterQuality = FilterQuality.low,
     this.isAntiAlias = false,
-    this.onFinish,
-    this.onStart,
-    this.onFrame,
     this.onError,
+    this.fadeDuration,
   }) : super(key: key);
 
   @override
@@ -169,12 +146,17 @@ class GifView extends StatefulWidget {
 }
 
 class GifViewState extends State<GifView> with TickerProviderStateMixin {
-  List<GifFrame> frames = [];
-  bool _running = false;
-  int currentIndex = 0;
+  late GifController controller;
+  late AnimationController _animationController;
 
   @override
   void initState() {
+    _animationController = AnimationController(
+      vsync: this,
+      duration: widget.fadeDuration ?? const Duration(milliseconds: 300),
+    );
+    controller = widget.controller ?? GifController();
+    controller.addListener(_listener);
     Future.delayed(Duration.zero, _loadImage);
     super.initState();
   }
@@ -182,18 +164,14 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
   @override
   void didUpdateWidget(covariant GifView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.isAnimated != widget.isAnimated ||
-        oldWidget.loop != widget.loop ||
-        oldWidget.invertedAnimation != widget.invertedAnimation) {
-      _loadImage();
+    if (oldWidget.image != widget.image) {
+      _loadImage(updateFrames: true);
     }
   }
 
-  GifFrame get currentFrame => frames[currentIndex];
-
   @override
   Widget build(BuildContext context) {
-    if (frames.isEmpty) {
+    if (controller.status == GifStatus.loading) {
       return SizedBox(
         width: widget.width,
         height: widget.height,
@@ -201,10 +179,10 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
       );
     }
     return RawImage(
-      image: currentFrame.imageInfo.image,
+      image: controller.currentFrame.imageInfo.image,
       width: widget.width,
       height: widget.height,
-      scale: currentFrame.imageInfo.scale,
+      scale: controller.currentFrame.imageInfo.scale,
       fit: widget.fit,
       color: widget.color,
       colorBlendMode: widget.colorBlendMode,
@@ -215,6 +193,7 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
       invertColors: widget.invertColors,
       filterQuality: widget.filterQuality,
       isAntiAlias: widget.isAntiAlias,
+      opacity: _animationController,
     );
   }
 
@@ -289,58 +268,23 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
     return frameList;
   }
 
-  FutureOr _loadImage() async {
-    frames = await _fetchGif(widget.image);
-
-    if (widget.invertedAnimation) {
-      frames = frames.reversed.toList();
-    }
-
-    if (mounted && frames.isNotEmpty) {
-      setState(() {
-        widget.onStart?.call();
-        (widget.isAnimated) ? play() : pause();
-      });
-    }
-  }
-
-  void _startAnimation() async {
-    if (_running) {
-      await Future.delayed(currentFrame.duration);
-      if (currentIndex < frames.length - 1) {
-        if (mounted) {
-          setState(() {
-            currentIndex++;
-          });
-          widget.onFrame?.call(currentIndex);
-        }
-      } else if (widget.loop) {
-        currentIndex = 0;
-      } else {
-        widget.onFinish?.call();
-        _running = false;
-      }
-      _startAnimation();
-    }
-  }
-
-  void play() {
-    _running = true;
-    _startAnimation();
-  }
-
-  void pause() {
-    _running = false;
-  }
-
-  void stop() {
-    _running = false;
-    currentIndex = 0;
+  FutureOr _loadImage({bool updateFrames = false}) async {
+    final frames = await _fetchGif(widget.image);
+    controller.configure(frames, updateFrames: updateFrames);
+    _animationController.forward(from: 0);
   }
 
   @override
   void dispose() {
-    stop();
+    controller.stop();
+    controller.removeListener(_listener);
+    _animationController.dispose();
     super.dispose();
+  }
+
+  void _listener() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 }

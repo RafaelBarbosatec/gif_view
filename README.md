@@ -24,7 +24,6 @@ With `GifView` you can load GIF images of easy way and can configure frameRate.
 - Load from `Network`;
 - Load from `Memory`;
 - Set frame rate;
-- Listen when start (`onStart`), change frame (`onChange`) and finish (`onFinish`) animation.
 - Set `progress` while loading GIF
 
 ## Getting started
@@ -70,10 +69,8 @@ Add `gif_view` as a [dependency in your pubspec.yaml file](https://flutter.dev/u
 
 | Name | Description  | Default  |
 | ------- | --- | --- |
+| controller | - | - |
 | frameRate | - | - | 
-| isAnimated | - | `true` |
-| invertedAnimation | - | `false` |
-| loop | - | `true` |
 | height | - | - | 
 | width | - | - | 
 | progress | - |
@@ -93,3 +90,61 @@ Add `gif_view` as a [dependency in your pubspec.yaml file](https://flutter.dev/u
 | onError | - | - | 
 | scale | - | `1.0` |
 | headers | - | - | 
+
+
+## Controller
+
+```dart
+
+  GifController controller = GifController({
+    this.autoPlay = true,
+    this.loop = true,
+    bool inverted = false,
+    this.onStart,
+    this.onFinish,
+    this.onFrame,
+  });
+
+  controller.play({bool? inverted, int? initialFrame});
+
+  controller.pause();
+
+  controller.stop();
+
+  controller.seek(34);
+
+  GifStatus status = controller.status;
+  // GifStatus { loading, playing, stoped, paused, reversing }
+
+```
+
+## Controller use simple example
+
+```dart
+
+class MyPage extends StatelessWidget {
+  final controller = GifController();
+  MyPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: GifView.network(
+        'https://www.showmetech.com.br/wp-content/uploads/2015/09/happy-minion-gif.gif',
+        controller: controller,
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          if (controller.status == GifStatus.playing) {
+            controller.pause();
+          } else {
+            controller.play();
+          }
+        },
+      ),
+    );
+  }
+}
+
+
+```
