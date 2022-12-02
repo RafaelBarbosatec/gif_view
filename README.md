@@ -24,7 +24,6 @@ With `GifView` you can load GIF images of easy way and can configure frameRate.
 - Load from `Network`;
 - Load from `Memory`;
 - Set frame rate;
-- Listen when start (`onStart`), change frame (`onChange`) and finish (`onFinish`) animation.
 - Set `progress` while loading GIF
 
 ## Getting started
