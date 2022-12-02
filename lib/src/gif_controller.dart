@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gif_view/gif_view.dart';
+import 'package:gif_view/src/git_frame.dart';
 
 enum GifStatus { loading, playing, stoped, paused, reversing }
 
@@ -25,7 +25,7 @@ class GifController extends ChangeNotifier {
     this.onFrame,
   }) : _inverted = inverted;
 
-  void run() {
+  void _run() {
     switch (status) {
       case GifStatus.playing:
       case GifStatus.reversing:
@@ -64,32 +64,29 @@ class GifController extends ChangeNotifier {
 
     onFrame?.call(currentIndex);
     notifyListeners();
-    run();
+    _run();
   }
 
   GifFrame get currentFrame => frames[currentIndex];
 
   void play({bool? inverted, int? startFrame}) {
-    if (status == GifStatus.loading) {
-      return;
-    }
+    if (status == GifStatus.loading) return;
     _inverted = inverted ?? _inverted;
 
     if (status == GifStatus.stoped || status == GifStatus.paused) {
       status = _inverted ? GifStatus.reversing : GifStatus.playing;
-      if (startFrame != null &&
+
+      bool isValidStartFrame = startFrame != null &&
           startFrame > 0 &&
-          startFrame < frames.length - 1) {
+          startFrame < frames.length - 1;
+
+      if (isValidStartFrame) {
         currentIndex = startFrame;
       } else {
-        if (status == GifStatus.reversing) {
-          currentIndex = frames.length - 1;
-        } else {
-          currentIndex = 0;
-        }
+        currentIndex = status == GifStatus.reversing ? frames.length - 1 : 0;
       }
       onStart?.call();
-      run();
+      _run();
     } else {
       status = _inverted ? GifStatus.reversing : GifStatus.playing;
     }

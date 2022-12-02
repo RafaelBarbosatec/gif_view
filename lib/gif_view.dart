@@ -6,6 +6,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gif_view/src/gif_controller.dart';
+import 'package:gif_view/src/git_frame.dart';
 import 'package:http/http.dart' as http;
 
 export 'package:gif_view/src/gif_controller.dart';
@@ -21,13 +22,6 @@ export 'package:gif_view/src/gif_controller.dart';
 ///
 /// Rafaelbarbosatec
 /// on 23/09/21
-
-class GifFrame {
-  final ImageInfo imageInfo;
-  final Duration duration;
-
-  GifFrame(this.imageInfo, this.duration);
-}
 
 final Map<String, List<GifFrame>> _cache = {};
 
