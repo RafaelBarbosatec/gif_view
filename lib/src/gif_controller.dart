@@ -4,7 +4,7 @@ import 'package:gif_view/src/git_frame.dart';
 enum GifStatus { loading, playing, stoped, paused, reversing }
 
 class GifController extends ChangeNotifier {
-  List<GifFrame> frames = [];
+  List<GifFrame> _frames = [];
   int currentIndex = 0;
   GifStatus status = GifStatus.loading;
 
@@ -42,18 +42,18 @@ class GifController extends ChangeNotifier {
   }
 
   void _runNextFrame() async {
-    await Future.delayed(frames[currentIndex].duration);
+    await Future.delayed(_frames[currentIndex].duration);
 
     if (status == GifStatus.reversing) {
       if (currentIndex > 0) {
         currentIndex--;
       } else if (loop) {
-        currentIndex = frames.length - 1;
+        currentIndex = _frames.length - 1;
       } else {
         status = GifStatus.stoped;
       }
     } else {
-      if (currentIndex < frames.length - 1) {
+      if (currentIndex < _frames.length - 1) {
         currentIndex++;
       } else if (loop) {
         currentIndex = 0;
@@ -67,7 +67,8 @@ class GifController extends ChangeNotifier {
     _run();
   }
 
-  GifFrame get currentFrame => frames[currentIndex];
+  GifFrame get currentFrame => _frames[currentIndex];
+  int get countFrames => _frames.length;
 
   void play({bool? inverted, int? initialFrame}) {
     if (status == GifStatus.loading) return;
@@ -78,12 +79,12 @@ class GifController extends ChangeNotifier {
 
       bool isValidInitialFrame = initialFrame != null &&
           initialFrame > 0 &&
-          initialFrame < frames.length - 1;
+          initialFrame < _frames.length - 1;
 
       if (isValidInitialFrame) {
         currentIndex = initialFrame;
       } else {
-        currentIndex = status == GifStatus.reversing ? frames.length - 1 : 0;
+        currentIndex = status == GifStatus.reversing ? _frames.length - 1 : 0;
       }
       onStart?.call();
       _run();
@@ -100,13 +101,13 @@ class GifController extends ChangeNotifier {
     status = GifStatus.paused;
   }
 
-  void seek(int frame) {
-    currentIndex = frame;
+  void seek(int index) {
+    currentIndex = index;
     notifyListeners();
   }
 
   void configure(List<GifFrame> frames, {bool updateFrames = false}) {
-    this.frames = frames;
+    _frames = frames;
     if (!updateFrames) {
       status = GifStatus.stoped;
       if (autoPlay) {
