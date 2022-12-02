@@ -168,6 +168,14 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
   }
 
   @override
+  void didUpdateWidget(covariant GifView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.image != widget.image) {
+      _loadImage(updateFrames: true);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (controller.status == GifStatus.loading) {
       return SizedBox(
@@ -266,10 +274,10 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
     return frameList;
   }
 
-  FutureOr _loadImage() async {
+  FutureOr _loadImage({bool updateFrames = false}) async {
     final frames = await _fetchGif(widget.image);
-    controller.configure(frames);
-    _animationController.forward();
+    controller.configure(frames, updateFrames: updateFrames);
+    _animationController.forward(from: 0);
   }
 
   @override

@@ -103,12 +103,14 @@ class GifController extends ChangeNotifier {
     status = GifStatus.paused;
   }
 
-  void configure(List<GifFrame> frames) {
+  void configure(List<GifFrame> frames, {bool updateFrames = false}) {
     this.frames = frames;
-    status = GifStatus.stoped;
-    if (autoPlay) {
-      play();
+    if (!updateFrames) {
+      status = GifStatus.stoped;
+      if (autoPlay) {
+        play();
+      }
+      notifyListeners();
     }
-    notifyListeners();
   }
 }
