@@ -82,3 +82,27 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
+class MyPage extends StatelessWidget {
+  final controller = GifController();
+  MyPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: GifView.network(
+        'https://www.showmetech.com.br/wp-content/uploads/2015/09/happy-minion-gif.gif',
+        controller: controller,
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          if (controller.status == GifStatus.playing) {
+            controller.pause();
+          } else {
+            controller.play();
+          }
+        },
+      ),
+    );
+  }
+}
