@@ -1,6 +1,7 @@
 ## 0.3.0
 
 * Adds `GifController`. Now you can control the gif with controller. Methods: `play({bool? inverted, int? initialFrame})`, `pause()`, `stop()`. (Fixing #9)
+* Adds fade animation when showing.
 BREAKING CHANGES:
 - remove `isAnimated` now is `autoPlay` in `GifController`
 - remove `invertedAnimation` now is `inverted` in `GifController`
