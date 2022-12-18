@@ -1,3 +1,8 @@
+## 0.3.1
+
+* Adds `withOpacityAnimation` param.
+* Fix for 'Null check operator used on a null value'. Thanks [oligazar](https://github.com/oligazar)!
+
 ## 0.3.0
 
 * Adds `GifController`. Now you can control the gif with controller. Methods: `play({bool? inverted, int? initialFrame})`, `pause()`, `stop()`. (Fixing #9)

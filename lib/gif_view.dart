@@ -40,6 +40,7 @@ class GifView extends StatefulWidget {
   final Rect? centerSlice;
   final bool matchTextDirection;
   final bool invertColors;
+  final bool withOpacityAnimation;
   final FilterQuality filterQuality;
   final bool isAntiAlias;
   final ValueChanged<Object?>? onError;
@@ -63,6 +64,7 @@ class GifView extends StatefulWidget {
     this.invertColors = false,
     this.filterQuality = FilterQuality.low,
     this.isAntiAlias = false,
+    this.withOpacityAnimation = true,
     this.onError,
     this.fadeDuration,
     double scale = 1.0,
@@ -88,6 +90,7 @@ class GifView extends StatefulWidget {
     this.invertColors = false,
     this.filterQuality = FilterQuality.low,
     this.isAntiAlias = false,
+    this.withOpacityAnimation = true,
     this.onError,
     this.fadeDuration,
     String? package,
@@ -113,6 +116,7 @@ class GifView extends StatefulWidget {
     this.invertColors = false,
     this.filterQuality = FilterQuality.low,
     this.isAntiAlias = false,
+    this.withOpacityAnimation = true,
     this.onError,
     this.fadeDuration,
     double scale = 1.0,
@@ -137,6 +141,7 @@ class GifView extends StatefulWidget {
     this.invertColors = false,
     this.filterQuality = FilterQuality.low,
     this.isAntiAlias = false,
+    this.withOpacityAnimation = true,
     this.onError,
     this.fadeDuration,
   }) : super(key: key);
@@ -151,10 +156,12 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
 
   @override
   void initState() {
-    _animationController = AnimationController(
-      vsync: this,
-      duration: widget.fadeDuration ?? const Duration(milliseconds: 300),
-    );
+    if (widget.withOpacityAnimation) {
+      _animationController = AnimationController(
+        vsync: this,
+        duration: widget.fadeDuration ?? const Duration(milliseconds: 300),
+      );
+    }
     controller = widget.controller ?? GifController();
     controller.addListener(_listener);
     Future.delayed(Duration.zero, _loadImage);
