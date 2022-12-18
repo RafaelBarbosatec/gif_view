@@ -147,7 +147,7 @@ class GifView extends StatefulWidget {
 
 class GifViewState extends State<GifView> with TickerProviderStateMixin {
   late GifController controller;
-  late AnimationController _animationController;
+  AnimationController? _animationController;
 
   @override
   void initState() {
@@ -271,14 +271,15 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
   FutureOr _loadImage({bool updateFrames = false}) async {
     final frames = await _fetchGif(widget.image);
     controller.configure(frames, updateFrames: updateFrames);
-    _animationController.forward(from: 0);
+    _animationController?.forward(from: 0);
   }
 
   @override
   void dispose() {
     controller.stop();
     controller.removeListener(_listener);
-    _animationController.dispose();
+    _animationController?.dispose();
+    _animationController = null;
     super.dispose();
   }
 
