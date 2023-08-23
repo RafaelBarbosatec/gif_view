@@ -1,3 +1,8 @@
+## 0.4.0
+
+* Update `http`
+* Update sdk min to `2.16.0`
+
 ## 0.3.1
 
 * Adds `withOpacityAnimation` param.
