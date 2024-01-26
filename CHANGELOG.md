@@ -1,3 +1,8 @@
+## 0.4.1
+
+* Improvements on handle error.
+* Cache improvements.
+
 ## 0.4.0
 
 * Update `http`

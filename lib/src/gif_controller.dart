@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:gif_view/src/git_frame.dart';
 
-enum GifStatus { loading, playing, stoped, paused, reversing }
+enum GifStatus { loading, playing, stoped, paused, reversing, error }
 
 class GifController extends ChangeNotifier {
   List<GifFrame> _frames = [];
   int currentIndex = 0;
   GifStatus status = GifStatus.loading;
+  Exception? exception;
 
   final bool autoPlay;
   final VoidCallback? onFinish;
@@ -38,6 +39,7 @@ class GifController extends ChangeNotifier {
         break;
       case GifStatus.loading:
       case GifStatus.paused:
+      case GifStatus.error:
     }
   }
 
@@ -107,13 +109,31 @@ class GifController extends ChangeNotifier {
   }
 
   void configure(List<GifFrame> frames, {bool updateFrames = false}) {
+    if (frames.isEmpty) {
+      if (status != GifStatus.error) {
+        error(Exception('Empty Frames'));
+      }
+      return;
+    }
+    exception = null;
     _frames = frames;
-    if (!updateFrames) {
+    if (!updateFrames || status == GifStatus.loading) {
       status = GifStatus.stoped;
       if (autoPlay) {
         play();
       }
       notifyListeners();
     }
+  }
+
+  void error(Exception e) {
+    exception = e;
+    status = GifStatus.error;
+    notifyListeners();
+  }
+
+  void loading() {
+    status = GifStatus.loading;
+    notifyListeners();
   }
 }
