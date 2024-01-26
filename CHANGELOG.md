@@ -2,6 +2,7 @@
 
 * Improvements on handle error.
 * Cache improvements.
+* Fix issue [17](https://github.com/RafaelBarbosatec/gif_view/issues/17)
 
 ## 0.4.0
 
