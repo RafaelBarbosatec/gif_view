@@ -32,7 +32,6 @@ class GifController extends ChangeNotifier {
       case GifStatus.reversing:
         _runNextFrame();
         break;
-
       case GifStatus.stoped:
         onFinish?.call();
         currentIndex = 0;
@@ -71,6 +70,9 @@ class GifController extends ChangeNotifier {
 
   GifFrame get currentFrame => _frames[currentIndex];
   int get countFrames => _frames.length;
+  bool get isReversing => status == GifStatus.reversing;
+  bool get isPaused => status == GifStatus.stoped || status == GifStatus.paused;
+  bool get isPlaying => status == GifStatus.playing;
 
   void play({bool? inverted, int? initialFrame}) {
     if (status == GifStatus.loading || _frames.isEmpty) return;
@@ -86,7 +88,7 @@ class GifController extends ChangeNotifier {
       if (isValidInitialFrame) {
         currentIndex = initialFrame;
       } else {
-        currentIndex = status == GifStatus.reversing ? _frames.length - 1 : 0;
+        currentIndex = isReversing ? _frames.length - 1 : currentIndex;
       }
       onStart?.call();
       _run();

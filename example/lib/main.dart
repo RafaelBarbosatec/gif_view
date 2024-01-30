@@ -31,6 +31,23 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  List<String> gifList = [
+    'assets/gif1.gif',
+    'https://www.showmetech.com.br/wp-content/uploads/2015/09/happy-minion-gif.gif',
+    'https://gifs.eco.br/wp-content/uploads/2021/08/engracados-memes-gif-19.gif'
+  ];
+
+  late List<GifController> gifControllerList;
+
+  @override
+  void initState() {
+    gifControllerList = List.generate(
+      gifList.length,
+      (index) => GifController(),
+    );
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,50 +56,114 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: ListView(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              'Gif load from asset',
-              style: Theme.of(context).textTheme.headlineSmall,
+      body: _buildList(),
+      // body: ListView(
+      //   children: [
+      //     Padding(
+      //       padding: const EdgeInsets.all(8.0),
+      //       child: Text(
+      //         'Gif load from asset',
+      //         style: Theme.of(context).textTheme.headlineSmall,
+      //       ),
+      //     ),
+      //     const Divider(),
+      //     GifView.asset(
+      //       'assets/gif1.gif',
+      //       height: 200,
+      //       frameRate: 30,
+      //     ),
+      // Padding(
+      //   padding: const EdgeInsets.all(8.0),
+      //   child: Text(
+      //     'Gif load from network',
+      //     style: Theme.of(context).textTheme.headlineSmall,
+      //   ),
+      // ),
+      //     const Divider(),
+      //     GifView.network(
+      //       'https://www.showmetech.com.br/wp-content/uploads/2015/09/happy-minion-gif.gif',
+      //       height: 200,
+      //       onError: (error) {
+      //         return const Center(
+      //           child: Text("onError"),
+      //         );
+      //       },
+      //     ),
+      //     GifView.network(
+      //       'https://gifs.eco.br/wp-content/uploads/2022/05/gifs-de-homem-aranha-no-aranhaverso-20.gif',
+      //       height: 200,
+      //       progress: const Center(
+      //         child: CircularProgressIndicator(),
+      //       ),
+      //     ),
+      //     GifView.network(
+      //       'https://gifs.eco.br/wp-content/uploads/2021/08/engracados-memes-gif-19.gif',
+      //       height: 200,
+      //     ),
+      //   ],
+      // ),
+    );
+  }
+
+  Widget _buildList() {
+    return ListView.builder(
+      itemCount: gifList.length,
+      itemBuilder: (context, index) {
+        String gif = gifList[index];
+        GifController controller = gifControllerList[index];
+        return InkWell(
+          onTap: () {
+            if (controller.isPaused) {
+              controller.play();
+            } else if (controller.isPlaying) {
+              controller.pause();
+            }
+          },
+          child: _buildGif(gif, controller),
+        );
+      },
+    );
+  }
+
+  Widget _buildGif(String gif, GifController controller) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                gif.contains('http')
+                    ? 'Gif load from network'
+                    : 'Gif load from asset',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
             ),
-          ),
-          const Divider(),
-          GifView.asset(
-            'assets/gif1.gif',
-            height: 200,
-            frameRate: 30,
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              'Gif load from network',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-          ),
-          const Divider(),
-          GifView.network(
-            'https://www.showmetech.com.br/wp-content/uploads/2015/09/happy-minion-gif.gif',
-            height: 200,
-            onError: (error) {
-              return const Center(
-                child: Text("onError"),
-              );
-            },
-          ),
-          GifView.network(
-            'https://gifs.eco.br/wp-content/uploads/2022/05/gifs-de-homem-aranha-no-aranhaverso-20.gif',
-            height: 200,
-            progress: const Center(
-              child: CircularProgressIndicator(),
-            ),
-          ),
-          GifView.network(
-            'https://gifs.eco.br/wp-content/uploads/2021/08/engracados-memes-gif-19.gif',
-            height: 200,
-          ),
-        ],
+            if (gif.contains('http'))
+              GifView.network(
+                gif,
+                controller: controller,
+                height: 200,
+                onError: (error) {
+                  return const Center(
+                    child: Text("onError"),
+                  );
+                },
+                progress: const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else
+              GifView.asset(
+                gif,
+                controller: controller,
+                height: 200,
+                frameRate: 30,
+              )
+          ],
+        ),
       ),
     );
   }
