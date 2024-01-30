@@ -65,6 +65,11 @@ class _MyHomePageState extends State<MyHomePage> {
           GifView.network(
             'https://www.showmetech.com.br/wp-content/uploads/2015/09/happy-minion-gif.gif',
             height: 200,
+            onError: (error) {
+              return const Center(
+                child: Text("onError"),
+              );
+            },
           ),
           GifView.network(
             'https://gifs.eco.br/wp-content/uploads/2022/05/gifs-de-homem-aranha-no-aranhaverso-20.gif',

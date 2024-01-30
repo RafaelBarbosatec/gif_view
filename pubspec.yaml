@@ -1,6 +1,6 @@
 name: gif_view
 description: Load GIF images and can set framerate
-version: 0.4.1
+version: 0.4.2
 homepage: https://github.com/RafaelBarbosatec/gif_view
 
 environment:

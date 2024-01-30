@@ -268,8 +268,10 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
   FutureOr _loadImage({bool updateFrames = false}) async {
     controller.loading();
     final frames = await _fetchGif(widget.image);
-    controller.configure(frames, updateFrames: updateFrames);
-    _animationController?.forward(from: 0);
+    if (frames.isNotEmpty) {
+      controller.configure(frames, updateFrames: updateFrames);
+      _animationController?.forward(from: 0);
+    }
   }
 
   void _listener() {

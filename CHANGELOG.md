@@ -1,3 +1,7 @@
+## 0.4.2
+
+* Fix issue [19](https://github.com/RafaelBarbosatec/gif_view/issues/19#issuecomment-1916085547)
+
 ## 0.4.1
 
 * Improvements on handle error.

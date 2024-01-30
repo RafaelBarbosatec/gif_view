@@ -73,7 +73,7 @@ class GifController extends ChangeNotifier {
   int get countFrames => _frames.length;
 
   void play({bool? inverted, int? initialFrame}) {
-    if (status == GifStatus.loading) return;
+    if (status == GifStatus.loading || _frames.isEmpty) return;
     _inverted = inverted ?? _inverted;
 
     if (status == GifStatus.stoped || status == GifStatus.paused) {
@@ -109,12 +109,6 @@ class GifController extends ChangeNotifier {
   }
 
   void configure(List<GifFrame> frames, {bool updateFrames = false}) {
-    if (frames.isEmpty) {
-      if (status != GifStatus.error) {
-        error(Exception('Empty Frames'));
-      }
-      return;
-    }
     exception = null;
     _frames = frames;
     if (!updateFrames || status == GifStatus.loading) {
