@@ -50,7 +50,7 @@ class GifController extends ChangeNotifier {
     if (status == GifStatus.reversing) {
       if (_currentIndex > 0) {
         int newIndex = _currentIndex - 1;
-        _currentIndex = (newIndex % (_frames.length));
+        _currentIndex = (newIndex % _frames.length);
       } else if (loop) {
         _currentIndex = _frames.length - 1;
       } else {
@@ -59,7 +59,7 @@ class GifController extends ChangeNotifier {
     } else {
       if (_currentIndex < _frames.length - 1) {
         int newIndex = _currentIndex + 1;
-        _currentIndex = (newIndex % (_frames.length));
+        _currentIndex = (newIndex % _frames.length);
       } else if (loop) {
         _currentIndex = 0;
       } else {
@@ -110,7 +110,8 @@ class GifController extends ChangeNotifier {
   }
 
   void seek(int index) {
-    _currentIndex = index;
+    if (_frames.isEmpty) return;
+    _currentIndex = (index % _frames.length);
     notifyListeners();
   }
 
