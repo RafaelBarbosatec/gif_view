@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 // ignore: unnecessary_import
 import 'dart:typed_data';
 import 'dart:ui';
@@ -165,7 +166,9 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
     }
     controller = widget.controller ?? GifController();
     controller.addListener(_listener);
-    Future.delayed(Duration.zero, _loadImage);
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _loadImage(),
+    );
     super.initState();
   }
 
@@ -237,7 +240,7 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
                 ? provider.bytes.toString().substring(0, 100)
                 : provider is FileImage
                     ? provider.file.path
-                    : "";
+                    : Random().nextDouble().toString();
   }
 
   Future<List<GifFrame>> _fetchGif(ImageProvider provider) async {
