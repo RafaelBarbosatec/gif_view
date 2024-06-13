@@ -1,3 +1,22 @@
+## 0.4.3
+
+* Play and Pause improvements in `GifController`.
+
+## 0.4.2
+
+* Fix issue [19](https://github.com/RafaelBarbosatec/gif_view/issues/19#issuecomment-1916085547)
+
+## 0.4.1
+
+* Improvements on handle error.
+* Cache improvements.
+* Fix issue [17](https://github.com/RafaelBarbosatec/gif_view/issues/17)
+
+## 0.4.0
+
+* Update `http`
+* Update sdk min to `2.16.0`
+
 ## 0.3.1
 
 * Adds `withOpacityAnimation` param.
