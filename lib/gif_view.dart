@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+
 // ignore: unnecessary_import
 import 'dart:typed_data';
 import 'dart:ui';
@@ -149,6 +150,87 @@ class GifView extends StatefulWidget {
 
   @override
   GifViewState createState() => GifViewState();
+
+  static Future<List<GifFrame>> prefetchGif(ImageProvider provider) async {
+    List<GifFrame> frameList = [];
+    String key = GifView._getKeyImage(provider);
+
+    if (_cache.containsKey(key)) {
+      frameList = _cache[key]!;
+      return frameList;
+    }
+
+    Uint8List? data = await GifView._loadImageBytes(provider);
+
+    if (data == null) {
+      return [];
+    }
+
+    frameList.addAll(await _buildFrames(data));
+
+    _cache.putIfAbsent(key, () => frameList);
+    return frameList;
+  }
+
+  static String _getKeyImage(ImageProvider provider) {
+    return provider is NetworkImage
+        ? provider.url
+        : provider is AssetImage
+            ? provider.assetName
+            : provider is MemoryImage
+                ? provider.bytes.toString().substring(0, 100)
+                : provider is FileImage
+                    ? provider.file.path
+                    : Random().nextDouble().toString();
+  }
+
+  static Future<Uint8List?> _loadImageBytes(ImageProvider<Object> provider) {
+    if (provider is NetworkImage) {
+      final Uri resolved = Uri.base.resolve(provider.url);
+      return http
+          .get(resolved, headers: provider.headers)
+          .then((value) => value.bodyBytes);
+    } else if (provider is AssetImage) {
+      return provider.obtainKey(const ImageConfiguration()).then(
+        (value) async {
+          final d = await value.bundle.load(value.name);
+          return d.buffer.asUint8List();
+        },
+      );
+    } else if (provider is FileImage) {
+      return provider.file.readAsBytes();
+    } else if (provider is MemoryImage) {
+      return Future.value(provider.bytes);
+    }
+    return Future.value(null);
+  }
+
+  static Future<Iterable<GifFrame>> _buildFrames(
+    Uint8List data, {
+    int? frameRate,
+  }) async {
+    Codec codec = await instantiateImageCodec(
+      data,
+      allowUpscaling: false,
+    );
+
+    List<GifFrame> list = [];
+
+    for (int i = 0; i < codec.frameCount; i++) {
+      FrameInfo frameInfo = await codec.getNextFrame();
+      Duration duration = frameInfo.duration;
+      if (frameRate != null) {
+        duration = Duration(milliseconds: (1000 / frameRate).ceil());
+      }
+      list.add(
+        GifFrame(
+          ImageInfo(image: frameInfo.image),
+          duration,
+        ),
+      );
+    }
+    return list;
+  }
 }
 
 class GifViewState extends State<GifView> with TickerProviderStateMixin {
@@ -231,35 +313,23 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
     );
   }
 
-  String _getKeyImage(ImageProvider provider) {
-    return provider is NetworkImage
-        ? provider.url
-        : provider is AssetImage
-            ? provider.assetName
-            : provider is MemoryImage
-                ? provider.bytes.toString().substring(0, 100)
-                : provider is FileImage
-                    ? provider.file.path
-                    : Random().nextDouble().toString();
-  }
-
   Future<List<GifFrame>> _fetchGif(ImageProvider provider) async {
     List<GifFrame> frameList = [];
     try {
-      String key = _getKeyImage(provider);
+      String key = GifView._getKeyImage(provider);
 
       if (_cache.containsKey(key)) {
         frameList = _cache[key]!;
         return frameList;
       }
 
-      Uint8List? data = await _loadImageBytes(provider);
+      Uint8List? data = await GifView._loadImageBytes(provider);
 
       if (data == null) {
         return [];
       }
 
-      frameList.addAll(await _buildFrames(data));
+      frameList.addAll(await GifView._buildFrames(data));
 
       _cache.putIfAbsent(key, () => frameList);
     } catch (e) {
@@ -281,50 +351,5 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
     if (mounted) {
       setState(() {});
     }
-  }
-
-  Future<Uint8List?> _loadImageBytes(ImageProvider<Object> provider) {
-    if (provider is NetworkImage) {
-      final Uri resolved = Uri.base.resolve(provider.url);
-      return http
-          .get(resolved, headers: provider.headers)
-          .then((value) => value.bodyBytes);
-    } else if (provider is AssetImage) {
-      return provider.obtainKey(const ImageConfiguration()).then(
-        (value) async {
-          final d = await value.bundle.load(value.name);
-          return d.buffer.asUint8List();
-        },
-      );
-    } else if (provider is FileImage) {
-      return provider.file.readAsBytes();
-    } else if (provider is MemoryImage) {
-      return Future.value(provider.bytes);
-    }
-    return Future.value(null);
-  }
-
-  Future<Iterable<GifFrame>> _buildFrames(Uint8List data) async {
-    Codec codec = await instantiateImageCodec(
-      data,
-      allowUpscaling: false,
-    );
-
-    List<GifFrame> list = [];
-
-    for (int i = 0; i < codec.frameCount; i++) {
-      FrameInfo frameInfo = await codec.getNextFrame();
-      Duration duration = frameInfo.duration;
-      if (widget.frameRate != null) {
-        duration = Duration(milliseconds: (1000 / widget.frameRate!).ceil());
-      }
-      list.add(
-        GifFrame(
-          ImageInfo(image: frameInfo.image),
-          duration,
-        ),
-      );
-    }
-    return list;
   }
 }

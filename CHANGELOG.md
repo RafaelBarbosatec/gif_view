@@ -1,3 +1,7 @@
+## 0.5.0
+
+* Prefetch method
+
 ## 0.4.4
 
 * Fix issue [#20](https://github.com/RafaelBarbosatec/gif_view/issues/20)
