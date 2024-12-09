@@ -16,6 +16,7 @@ class GifController extends ChangeNotifier {
 
   bool loop;
   bool _inverted;
+  bool _disposed = false;
 
   int get index => _currentIndex;
 
@@ -28,7 +29,14 @@ class GifController extends ChangeNotifier {
     this.onFrame,
   }) : _inverted = inverted;
 
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
   void _run() {
+    if (_disposed) return;
     switch (status) {
       case GifStatus.playing:
       case GifStatus.reversing:
@@ -41,17 +49,18 @@ class GifController extends ChangeNotifier {
       case GifStatus.loading:
       case GifStatus.paused:
       case GifStatus.error:
+        break;
     }
   }
 
   void _runNextFrame() async {
-    if (_frames.isEmpty) return;
+    if (_disposed || _frames.isEmpty) return;
     await Future.delayed(_frames[_currentIndex].duration);
+    if (_disposed) return;
 
     if (status == GifStatus.reversing) {
       if (_currentIndex > 0) {
-        int newIndex = _currentIndex - 1;
-        _currentIndex = (newIndex % _frames.length);
+        _currentIndex = (_currentIndex - 1) % _frames.length;
       } else if (loop) {
         _currentIndex = _frames.length - 1;
       } else {
@@ -59,8 +68,7 @@ class GifController extends ChangeNotifier {
       }
     } else {
       if (_currentIndex < _frames.length - 1) {
-        int newIndex = _currentIndex + 1;
-        _currentIndex = (newIndex % _frames.length);
+        _currentIndex = (_currentIndex + 1) % _frames.length;
       } else if (loop) {
         _currentIndex = 0;
       } else {
@@ -86,12 +94,11 @@ class GifController extends ChangeNotifier {
   bool get isPlaying => status == GifStatus.playing;
 
   void play({bool? inverted, int? initialFrame}) {
-    if (status == GifStatus.loading || _frames.isEmpty) return;
+    if (_disposed || status == GifStatus.loading || _frames.isEmpty) return;
     _inverted = inverted ?? _inverted;
 
     if (status == GifStatus.stoped || status == GifStatus.paused) {
       status = _inverted ? GifStatus.reversing : GifStatus.playing;
-
       bool isValidInitialFrame = initialFrame != null &&
           initialFrame > 0 &&
           initialFrame < _frames.length - 1;
@@ -101,6 +108,7 @@ class GifController extends ChangeNotifier {
       } else {
         _currentIndex = isReversing ? _frames.length - 1 : _currentIndex;
       }
+
       onStart?.call();
       _run();
     } else {
@@ -109,22 +117,25 @@ class GifController extends ChangeNotifier {
   }
 
   void stop() {
+    if (_disposed) return;
     status = GifStatus.stoped;
   }
 
   void pause() {
+    if (_disposed) return;
     status = GifStatus.paused;
   }
 
   void seek(int index) {
-    if (_frames.isEmpty) return;
-    _currentIndex = (index % _frames.length);
+    if (_disposed || _frames.isEmpty) return;
+    _currentIndex = index % _frames.length;
     if (hasListeners) {
       notifyListeners();
     }
   }
 
   void configure(List<GifFrame> frames, {bool updateFrames = false}) {
+    if (_disposed) return;
     exception = null;
     _frames = frames;
     if (!updateFrames || status == GifStatus.loading) {
@@ -139,6 +150,7 @@ class GifController extends ChangeNotifier {
   }
 
   void error(Exception e) {
+    if (_disposed) return;
     exception = e;
     status = GifStatus.error;
     if (hasListeners) {
@@ -147,6 +159,7 @@ class GifController extends ChangeNotifier {
   }
 
   void loading() {
+    if (_disposed) return;
     status = GifStatus.loading;
     if (hasListeners) {
       notifyListeners();
