@@ -178,7 +178,9 @@ class GifView extends StatefulWidget {
         : provider is AssetImage
             ? provider.assetName
             : provider is MemoryImage
-                ? provider.bytes.toString().substring(0, 100)
+                ? provider.bytes
+                    .toString()
+                    .substring(0, min(100, provider.bytes.length))
                 : provider is FileImage
                     ? provider.file.path
                     : Random().nextDouble().toString();
@@ -235,29 +237,39 @@ class GifView extends StatefulWidget {
 
 class GifViewState extends State<GifView> with TickerProviderStateMixin {
   late GifController controller;
+  bool _ownsController = false;
 
   AnimationController? _animationController;
 
   @override
   void initState() {
+    super.initState();
     if (widget.withOpacityAnimation) {
       _animationController = AnimationController(
         vsync: this,
         duration: widget.fadeDuration ?? const Duration(milliseconds: 300),
       );
     }
-    controller = widget.controller ?? GifController();
+    if (widget.controller == null) {
+      controller = GifController();
+      _ownsController = true;
+    } else {
+      controller = widget.controller!;
+    }
+
     controller.addListener(_listener);
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => _loadImage(),
     );
-    super.initState();
   }
 
   @override
   void dispose() {
     controller.stop();
     controller.removeListener(_listener);
+    if (_ownsController) {
+      controller.dispose();
+    }
     _animationController?.dispose();
     _animationController = null;
     super.dispose();
@@ -291,6 +303,14 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
         width: widget.width,
         height: widget.height,
         child: errorWidget,
+      );
+    }
+
+    if (controller.countFrames == 0) {
+      return SizedBox(
+        width: widget.width,
+        height: widget.height,
+        child: widget.progress ?? const SizedBox(),
       );
     }
 
@@ -332,8 +352,9 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
       frameList.addAll(await GifView._buildFrames(data));
 
       _cache.putIfAbsent(key, () => frameList);
-    } catch (e) {
-      controller.error(e as Exception);
+    } catch (e, stack) {
+      final exception = e is Exception ? e : Exception(e.toString());
+      controller.error(exception);
     }
     return frameList;
   }
@@ -344,6 +365,9 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
     if (frames.isNotEmpty) {
       controller.configure(frames, updateFrames: updateFrames);
       _animationController?.forward(from: 0);
+    } else {
+      controller.stop();
+      if (mounted) setState(() {});
     }
   }
 
