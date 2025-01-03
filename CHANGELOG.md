@@ -1,6 +1,9 @@
 ## 1.0.0
 
 * Adds `GifCacheProvider`.
+* Adds `GifView.preFetchImage`.
+* Adds `GifView.clearCache`.
+* Adds `GifView.setCacheProvider`.
 * Fix bug and improvements
 * BREAKING CHANGES:
     - Remove params of `GifController` constructor and move to widget constructor.
