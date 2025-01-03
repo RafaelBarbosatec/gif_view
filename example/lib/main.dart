@@ -8,7 +8,6 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -31,29 +30,10 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<String> gifList = [
-    'assets/gif1.gif',
-    'https://www.showmetech.com.br/wp-content/uploads/2015/09/happy-minion-gif.gif',
-    'https://gifs.eco.br/wp-content/uploads/2021/08/engracados-memes-gif-19.gif'
-  ];
-
-  late List<GifController> gifControllerList;
-
-  @override
-  void initState() {
-    gifControllerList = List.generate(
-      gifList.length,
-      (index) => GifController(),
-    );
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
       body: ListView(
