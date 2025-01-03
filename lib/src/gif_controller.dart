@@ -9,23 +9,33 @@ class GifController extends ChangeNotifier {
   GifStatus status = GifStatus.loading;
   Exception? exception;
 
-  final bool autoPlay;
-  final VoidCallback? onFinish;
-  final VoidCallback? onStart;
-  final ValueChanged<int>? onFrame;
+  VoidCallback? _onFinish;
+  VoidCallback? _onStart;
+  ValueChanged<int>? _onFrame;
 
-  bool loop;
-  bool _inverted;
+  bool _autoPlay = true;
+  bool _loop = true;
+  bool _inverted = false;
+
   int get index => _currentIndex;
 
-  GifController({
-    this.autoPlay = true,
-    this.loop = true,
+  bool _isDisposed = false;
+
+  void init({
+    bool autoPlay = true,
+    bool loop = true,
     bool inverted = false,
-    this.onStart,
-    this.onFinish,
-    this.onFrame,
-  }) : _inverted = inverted;
+    VoidCallback? onStart,
+    VoidCallback? onFinish,
+    ValueChanged<int>? onFrame,
+  }) {
+    _autoPlay = autoPlay;
+    _loop = loop;
+    _inverted = inverted;
+    _onStart = onStart;
+    _onFinish = onFinish;
+    _onFrame = onFrame;
+  }
 
   void _run() {
     switch (status) {
@@ -34,7 +44,6 @@ class GifController extends ChangeNotifier {
         _runNextFrame();
         break;
       case GifStatus.stoped:
-        onFinish?.call();
         _currentIndex = 0;
         break;
       case GifStatus.loading:
@@ -44,30 +53,38 @@ class GifController extends ChangeNotifier {
   }
 
   void _runNextFrame() async {
-    if (_frames.isEmpty) return;
+    if (_isDisposed || _frames.isEmpty) {
+      return;
+    }
     await Future.delayed(_frames[_currentIndex].duration);
+
+    if (_isDisposed) {
+      return;
+    }
 
     if (status == GifStatus.reversing) {
       if (_currentIndex > 0) {
         int newIndex = _currentIndex - 1;
         _currentIndex = (newIndex % _frames.length);
-      } else if (loop) {
+      } else if (_loop) {
         _currentIndex = _frames.length - 1;
       } else {
+        _onFinish?.call();
         status = GifStatus.stoped;
       }
     } else {
       if (_currentIndex < _frames.length - 1) {
         int newIndex = _currentIndex + 1;
         _currentIndex = (newIndex % _frames.length);
-      } else if (loop) {
+      } else if (_loop) {
         _currentIndex = 0;
       } else {
+        _onFinish?.call();
         status = GifStatus.stoped;
       }
     }
 
-    onFrame?.call(_currentIndex);
+    _onFrame?.call(_currentIndex);
     notifyListeners();
     _run();
   }
@@ -94,7 +111,7 @@ class GifController extends ChangeNotifier {
       } else {
         _currentIndex = isReversing ? _frames.length - 1 : _currentIndex;
       }
-      onStart?.call();
+      _onStart?.call();
       _run();
     } else {
       status = _inverted ? GifStatus.reversing : GifStatus.playing;
@@ -102,15 +119,21 @@ class GifController extends ChangeNotifier {
   }
 
   void stop() {
+    if (_isDisposed) {
+      return;
+    }
     status = GifStatus.stoped;
   }
 
   void pause() {
+    if (_isDisposed) {
+      return;
+    }
     status = GifStatus.paused;
   }
 
   void seek(int index) {
-    if (_frames.isEmpty) return;
+    if (_frames.isEmpty || _isDisposed) return;
     _currentIndex = (index % _frames.length);
     notifyListeners();
   }
@@ -120,7 +143,7 @@ class GifController extends ChangeNotifier {
     _frames = frames;
     if (!updateFrames || status == GifStatus.loading) {
       status = GifStatus.stoped;
-      if (autoPlay) {
+      if (_autoPlay) {
         play();
       }
       notifyListeners();
@@ -128,13 +151,25 @@ class GifController extends ChangeNotifier {
   }
 
   void error(Exception e) {
+    if (_isDisposed) {
+      return;
+    }
     exception = e;
     status = GifStatus.error;
     notifyListeners();
   }
 
   void loading() {
+    if (_isDisposed) {
+      return;
+    }
     status = GifStatus.loading;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
   }
 }

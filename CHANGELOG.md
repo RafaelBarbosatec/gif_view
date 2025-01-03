@@ -1,3 +1,16 @@
+## 1.0.0
+
+* Adds `GifCacheProvider`.
+* Adds `GifView.preFetchImage`.
+* Adds `GifView.clearCache`.
+* Adds `GifView.setCacheProvider`.
+* Fix bug and improvements
+* BREAKING CHANGES:
+    - Remove params of `GifController` constructor and move to widget constructor.
+    - Rename progress param to progressBuilder
+    - Rename error param to errorBuilder
+    - Raneme repeat param to imageRepeat;
+
 ## 0.4.4
 
 * Fix issue [#20](https://github.com/RafaelBarbosatec/gif_view/issues/20)

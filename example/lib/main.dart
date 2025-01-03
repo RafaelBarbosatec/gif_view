@@ -8,7 +8,6 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -31,29 +30,10 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<String> gifList = [
-    'assets/gif1.gif',
-    'https://www.showmetech.com.br/wp-content/uploads/2015/09/happy-minion-gif.gif',
-    'https://gifs.eco.br/wp-content/uploads/2021/08/engracados-memes-gif-19.gif'
-  ];
-
-  late List<GifController> gifControllerList;
-
-  @override
-  void initState() {
-    gifControllerList = List.generate(
-      gifList.length,
-      (index) => GifController(),
-    );
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
       body: ListView(
@@ -79,20 +59,39 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           const Divider(),
-          GifView.network(
-            'https://www.showmetech.com.br/wp-content/uploads/2015/09/happy-minion-gif.gif',
-            height: 200,
-          ),
-          GifView.network(
-            'https://gifs.eco.br/wp-content/uploads/2022/05/gifs-de-homem-aranha-no-aranhaverso-20.gif',
-            height: 200,
-            progress: const Center(
-              child: CircularProgressIndicator(),
-            ),
-          ),
-          GifView.network(
-            'https://gifs.eco.br/wp-content/uploads/2021/08/engracados-memes-gif-19.gif',
-            height: 200,
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              GifView.network(
+                'https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif?cid=790b7611inzoz5yw2ba2rp3pjak43bxvun5rjnrzj6ybli8g&ep=v1_gifs_search&rid=giphy.gif&ct=g',
+                height: 200,
+              ),
+              GifView.network(
+                'https://user-images.githubusercontent.com/53127751/201799963-23725770-a848-42a4-9593-20b835c7e238.png',
+                height: 200,
+                progressBuilder: (context) => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+                errorBuilder: (context, error, tryAgain) {
+                  return InkWell(
+                    onTap: tryAgain,
+                    child: const Icon(Icons.error),
+                  );
+                },
+                onLoaded: (totalFrames) {
+                  print(totalFrames);
+                },
+                onStart: () {
+                  print('onStart');
+                },
+              ),
+              GifView.network(
+                'https://media.giphy.com/media/rdma0nDFZMR32/giphy.gif?cid=790b7611vcvs5r1arjpbqdgmame2a11h3w6pkn5wbi2aeugl&ep=v1_gifs_search&rid=giphy.gif&ct=g',
+                height: 200,
+              ),
+            ],
           ),
         ],
       ),
