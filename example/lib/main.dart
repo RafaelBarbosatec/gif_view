@@ -79,20 +79,27 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           const Divider(),
-          GifView.network(
-            'https://www.showmetech.com.br/wp-content/uploads/2015/09/happy-minion-gif.gif',
-            height: 200,
-          ),
-          GifView.network(
-            'https://gifs.eco.br/wp-content/uploads/2022/05/gifs-de-homem-aranha-no-aranhaverso-20.gif',
-            height: 200,
-            progress: const Center(
-              child: CircularProgressIndicator(),
-            ),
-          ),
-          GifView.network(
-            'https://gifs.eco.br/wp-content/uploads/2021/08/engracados-memes-gif-19.gif',
-            height: 200,
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              GifView.network(
+                'https://www.showmetech.com.br/wp-content/uploads/2015/09/happy-minion-gif.gif',
+                height: 200,
+              ),
+              GifView.network(
+                'https://user-images.githubusercontent.com/53127751/201799963-23725770-a848-42a4-9593-20b835c7e238.png',
+                height: 200,
+                progressBuilder: (context) => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+              GifView.network(
+                'https://media.giphy.com/media/rdma0nDFZMR32/giphy.gif?cid=790b7611vcvs5r1arjpbqdgmame2a11h3w6pkn5wbi2aeugl&ep=v1_gifs_search&rid=giphy.gif&ct=g',
+                height: 200,
+              ),
+            ],
           ),
         ],
       ),

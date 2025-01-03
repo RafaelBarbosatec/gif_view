@@ -1,15 +1,16 @@
 import 'dart:async';
-import 'dart:math';
 // ignore: unnecessary_import
 import 'dart:typed_data';
-import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gif_view/src/gif_controller.dart';
-import 'package:gif_view/src/git_frame.dart';
-import 'package:http/http.dart' as http;
+import 'package:gif_view/src/gif_frame_builder.dart';
 
+import 'src/gif_cache_provider.dart';
+import 'src/gif_loader.dart';
+
+export 'package:gif_view/src/gif_cache_provider.dart';
 export 'package:gif_view/src/gif_controller.dart';
 
 ///
@@ -24,15 +25,13 @@ export 'package:gif_view/src/gif_controller.dart';
 /// Rafaelbarbosatec
 /// on 23/09/21
 
-final Map<String, List<GifFrame>> _cache = {};
-
 class GifView extends StatefulWidget {
   final GifController? controller;
   final int? frameRate;
   final ImageProvider image;
   final double? height;
   final double? width;
-  final Widget? progress;
+  final WidgetBuilder? progressBuilder;
   final BoxFit? fit;
   final Color? color;
   final BlendMode? colorBlendMode;
@@ -44,8 +43,11 @@ class GifView extends StatefulWidget {
   final bool withOpacityAnimation;
   final FilterQuality filterQuality;
   final bool isAntiAlias;
-  final Widget Function(Exception error)? onError;
+  final Widget Function(BuildContext context, Exception error)? errorBuilder;
   final Duration? fadeDuration;
+  final void Function()? onStart;
+  final void Function()? onFinish;
+  final void Function(int frame)? onFrame;
 
   GifView.network(
     String url, {
@@ -54,7 +56,7 @@ class GifView extends StatefulWidget {
     this.frameRate,
     this.height,
     this.width,
-    this.progress,
+    this.progressBuilder,
     this.fit,
     this.color,
     this.colorBlendMode,
@@ -66,10 +68,13 @@ class GifView extends StatefulWidget {
     this.filterQuality = FilterQuality.low,
     this.isAntiAlias = false,
     this.withOpacityAnimation = true,
-    this.onError,
+    this.errorBuilder,
     this.fadeDuration,
     double scale = 1.0,
     Map<String, String>? headers,
+    this.onStart,
+    this.onFinish,
+    this.onFrame,
   })  : image = NetworkImage(url, scale: scale, headers: headers),
         super(key: key);
 
@@ -80,7 +85,7 @@ class GifView extends StatefulWidget {
     this.frameRate,
     this.height,
     this.width,
-    this.progress,
+    this.progressBuilder,
     this.fit,
     this.color,
     this.colorBlendMode,
@@ -92,10 +97,13 @@ class GifView extends StatefulWidget {
     this.filterQuality = FilterQuality.low,
     this.isAntiAlias = false,
     this.withOpacityAnimation = true,
-    this.onError,
+    this.errorBuilder,
     this.fadeDuration,
     String? package,
     AssetBundle? bundle,
+    this.onStart,
+    this.onFinish,
+    this.onFrame,
   })  : image = AssetImage(asset, package: package, bundle: bundle),
         super(key: key);
 
@@ -106,7 +114,7 @@ class GifView extends StatefulWidget {
     this.frameRate = 15,
     this.height,
     this.width,
-    this.progress,
+    this.progressBuilder,
     this.fit,
     this.color,
     this.colorBlendMode,
@@ -118,9 +126,12 @@ class GifView extends StatefulWidget {
     this.filterQuality = FilterQuality.low,
     this.isAntiAlias = false,
     this.withOpacityAnimation = true,
-    this.onError,
+    this.errorBuilder,
     this.fadeDuration,
     double scale = 1.0,
+    this.onStart,
+    this.onFinish,
+    this.onFrame,
   })  : image = MemoryImage(bytes, scale: scale),
         super(key: key);
 
@@ -131,7 +142,7 @@ class GifView extends StatefulWidget {
     this.frameRate = 15,
     this.height,
     this.width,
-    this.progress,
+    this.progressBuilder,
     this.fit,
     this.color,
     this.colorBlendMode,
@@ -143,15 +154,26 @@ class GifView extends StatefulWidget {
     this.filterQuality = FilterQuality.low,
     this.isAntiAlias = false,
     this.withOpacityAnimation = true,
-    this.onError,
+    this.errorBuilder,
     this.fadeDuration,
+    this.onStart,
+    this.onFinish,
+    this.onFrame,
   }) : super(key: key);
+
+  static Future<void> preFetch(ImageProvider image) async {
+    await GifLoader.instance.fetch(image);
+  }
+
+  static void setCacheProvider(GifCacheProvider provider) {
+    GifLoader.instance.setCacheProvider(provider);
+  }
 
   @override
   GifViewState createState() => GifViewState();
 }
 
-class GifViewState extends State<GifView> with TickerProviderStateMixin {
+class GifViewState extends State<GifView> with SingleTickerProviderStateMixin {
   late GifController controller;
 
   AnimationController? _animationController;
@@ -174,8 +196,13 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    controller.stop();
     controller.removeListener(_listener);
+    if (widget.controller == null) {
+      controller.dispose();
+    } else {
+      controller.stop();
+    }
+
     _animationController?.dispose();
     _animationController = null;
     super.dispose();
@@ -196,12 +223,15 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
       return SizedBox(
         width: widget.width,
         height: widget.height,
-        child: widget.progress,
+        child: widget.progressBuilder?.call(context),
       );
     }
 
     if (controller.status == GifStatus.error) {
-      final errorWidget = widget.onError?.call(controller.exception!);
+      final errorWidget = widget.errorBuilder?.call(
+        context,
+        controller.exception!,
+      );
       if (errorWidget == null) {
         throw controller.exception!;
       }
@@ -231,49 +261,24 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
     );
   }
 
-  String _getKeyImage(ImageProvider provider) {
-    return provider is NetworkImage
-        ? provider.url
-        : provider is AssetImage
-            ? provider.assetName
-            : provider is MemoryImage
-                ? provider.bytes.toString().substring(0, 100)
-                : provider is FileImage
-                    ? provider.file.path
-                    : Random().nextDouble().toString();
-  }
-
-  Future<List<GifFrame>> _fetchGif(ImageProvider provider) async {
-    List<GifFrame> frameList = [];
-    try {
-      String key = _getKeyImage(provider);
-
-      if (_cache.containsKey(key)) {
-        frameList = _cache[key]!;
-        return frameList;
-      }
-
-      Uint8List? data = await _loadImageBytes(provider);
-
-      if (data == null) {
-        return [];
-      }
-
-      frameList.addAll(await _buildFrames(data));
-
-      _cache.putIfAbsent(key, () => frameList);
-    } catch (e) {
-      controller.error(e as Exception);
-    }
-    return frameList;
-  }
-
   FutureOr _loadImage({bool updateFrames = false}) async {
     controller.loading();
-    final frames = await _fetchGif(widget.image);
-    if (frames.isNotEmpty) {
-      controller.configure(frames, updateFrames: updateFrames);
-      _animationController?.forward(from: 0);
+    try {
+      final data = await GifLoader.instance.fetch(widget.image);
+      if (data != null) {
+        final frames = await GifFrameBuilder(
+          data: data,
+          frameRate: widget.frameRate,
+        ).build();
+        if (frames.isNotEmpty) {
+          controller.configure(frames, updateFrames: updateFrames);
+          _animationController?.forward(from: 0);
+        }
+      } else {
+        controller.error(Exception('Can not load image'));
+      }
+    } catch (e) {
+      controller.error(e as Exception);
     }
   }
 
@@ -281,50 +286,5 @@ class GifViewState extends State<GifView> with TickerProviderStateMixin {
     if (mounted) {
       setState(() {});
     }
-  }
-
-  Future<Uint8List?> _loadImageBytes(ImageProvider<Object> provider) {
-    if (provider is NetworkImage) {
-      final Uri resolved = Uri.base.resolve(provider.url);
-      return http
-          .get(resolved, headers: provider.headers)
-          .then((value) => value.bodyBytes);
-    } else if (provider is AssetImage) {
-      return provider.obtainKey(const ImageConfiguration()).then(
-        (value) async {
-          final d = await value.bundle.load(value.name);
-          return d.buffer.asUint8List();
-        },
-      );
-    } else if (provider is FileImage) {
-      return provider.file.readAsBytes();
-    } else if (provider is MemoryImage) {
-      return Future.value(provider.bytes);
-    }
-    return Future.value(null);
-  }
-
-  Future<Iterable<GifFrame>> _buildFrames(Uint8List data) async {
-    Codec codec = await instantiateImageCodec(
-      data,
-      allowUpscaling: false,
-    );
-
-    List<GifFrame> list = [];
-
-    for (int i = 0; i < codec.frameCount; i++) {
-      FrameInfo frameInfo = await codec.getNextFrame();
-      Duration duration = frameInfo.duration;
-      if (widget.frameRate != null) {
-        duration = Duration(milliseconds: (1000 / widget.frameRate!).ceil());
-      }
-      list.add(
-        GifFrame(
-          ImageInfo(image: frameInfo.image),
-          duration,
-        ),
-      );
-    }
-    return list;
   }
 }

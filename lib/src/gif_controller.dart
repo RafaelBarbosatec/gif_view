@@ -18,6 +18,8 @@ class GifController extends ChangeNotifier {
   bool _inverted;
   int get index => _currentIndex;
 
+  bool _isDisposed = false;
+
   GifController({
     this.autoPlay = true,
     this.loop = true,
@@ -44,8 +46,14 @@ class GifController extends ChangeNotifier {
   }
 
   void _runNextFrame() async {
-    if (_frames.isEmpty) return;
+    if (_isDisposed || _frames.isEmpty) {
+      return;
+    }
     await Future.delayed(_frames[_currentIndex].duration);
+
+    if (_isDisposed) {
+      return;
+    }
 
     if (status == GifStatus.reversing) {
       if (_currentIndex > 0) {
@@ -102,10 +110,16 @@ class GifController extends ChangeNotifier {
   }
 
   void stop() {
+    if (_isDisposed) {
+      return;
+    }
     status = GifStatus.stoped;
   }
 
   void pause() {
+    if (_isDisposed) {
+      return;
+    }
     status = GifStatus.paused;
   }
 
@@ -136,5 +150,11 @@ class GifController extends ChangeNotifier {
   void loading() {
     status = GifStatus.loading;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
   }
 }
