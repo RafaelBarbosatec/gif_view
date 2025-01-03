@@ -29,7 +29,9 @@ class GifView extends StatefulWidget {
   /// The width of the GIF view widget.
   /// If null, the widget will use its parent's width constraints.
   final double? width;
-  final Widget Function(BuildContext context, Exception error)? errorBuilder;
+  final Widget Function(
+          BuildContext context, Exception error, VoidCallback tryAgain)?
+      errorBuilder;
   final WidgetBuilder? progressBuilder;
 
   /// How to fit the image within its bounds.
@@ -293,6 +295,7 @@ class GifViewState extends State<GifView> with SingleTickerProviderStateMixin {
       final errorWidget = widget.errorBuilder?.call(
         context,
         controller.exception!,
+        () => _loadImage(),
       );
       if (errorWidget == null) {
         throw controller.exception!;

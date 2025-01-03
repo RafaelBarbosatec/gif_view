@@ -74,6 +74,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 progressBuilder: (context) => const Center(
                   child: CircularProgressIndicator(),
                 ),
+                errorBuilder: (context, error, tryAgain) {
+                  return InkWell(
+                    onTap: tryAgain,
+                    child: const Icon(Icons.error),
+                  );
+                },
                 onLoaded: (totalFrames) {
                   print(totalFrames);
                 },
