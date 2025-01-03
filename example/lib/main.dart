@@ -85,7 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
             physics: const NeverScrollableScrollPhysics(),
             children: [
               GifView.network(
-                'https://www.showmetech.com.br/wp-content/uploads/2015/09/happy-minion-gif.gif',
+                'https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif?cid=790b7611inzoz5yw2ba2rp3pjak43bxvun5rjnrzj6ybli8g&ep=v1_gifs_search&rid=giphy.gif&ct=g',
                 height: 200,
               ),
               GifView.network(
@@ -94,6 +94,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 progressBuilder: (context) => const Center(
                   child: CircularProgressIndicator(),
                 ),
+                onLoaded: (totalFrames) {
+                  print(totalFrames);
+                },
+                onStart: () {
+                  print('onStart');
+                },
               ),
               GifView.network(
                 'https://media.giphy.com/media/rdma0nDFZMR32/giphy.gif?cid=790b7611vcvs5r1arjpbqdgmame2a11h3w6pkn5wbi2aeugl&ep=v1_gifs_search&rid=giphy.gif&ct=g',

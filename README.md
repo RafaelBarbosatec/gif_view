@@ -2,7 +2,7 @@
 
 # GifView
 
-Load GIF images and can set framerate
+Load [GIF](https://pt.wikipedia.org/wiki/GIF)|[APNG](https://pt.wikipedia.org/wiki/Animated_Portable_Network_Graphics) images and can set framerate
 
 ## Features
 
@@ -27,7 +27,7 @@ Add `gif_view` as a [dependency in your pubspec.yaml file](https://flutter.dev/u
     'assets/gif1.gif',
     height: 200,
     width: 200,
-    frameRate: 30, // default is 15 FPS
+    frameRate: 30, 
   )
 ```
 
@@ -61,12 +61,11 @@ Add `gif_view` as a [dependency in your pubspec.yaml file](https://flutter.dev/u
 | frameRate | - | - | 
 | height | - | - | 
 | width | - | - | 
-| progress | - |
 | fit | - | - | 
 | color | - | - | 
 | colorBlendMode | - | - | 
 | alignment | - | `Alignment.center` |
-| repeat | - |  `ImageRepeat.noRepeat` |
+| imageRepeat | - |  `ImageRepeat.noRepeat` |
 | centerSlice | - | - | 
 | matchTextDirection | - | `false` |
 | invertColors | - | `false` |
@@ -75,7 +74,11 @@ Add `gif_view` as a [dependency in your pubspec.yaml file](https://flutter.dev/u
 | onFinish | - | - | 
 | onStart | - | - | 
 | onFrame | - | - | 
-| onError | You can return a widget to show when happen error | - | 
+| onLoaded | - | - | 
+| loop | - | - | 
+| playInverted | - | - | 
+| errorBuilder | You can return a widget to show when happen error | - | 
+| progressBuilder | You can return a widget to show while loading | - |
 | scale | - | `1.0` |
 | headers | - | - | 
 
@@ -84,14 +87,7 @@ Add `gif_view` as a [dependency in your pubspec.yaml file](https://flutter.dev/u
 
 ```dart
 
-  GifController controller = GifController({
-    this.autoPlay = true,
-    this.loop = true,
-    bool inverted = false,
-    this.onStart,
-    this.onFinish,
-    this.onFrame,
-  });
+  GifController controller = GifController();
 
   controller.play({bool? inverted, int? initialFrame});
 
@@ -135,4 +131,45 @@ class MyPage extends StatelessWidget {
 }
 
 
+```
+
+## Cache Management
+
+### Pre-fetching Images
+
+GifView provides a static `preFetch` method to load and cache GIF images ahead of time for better performance:
+
+```dart
+// Pre-fetch single or multiple GIFs
+await GifView.preFetch(ImageProvider());
+```
+
+### Custom Cache Provider
+
+You can implement your own caching strategy by setting a custom cache provider:
+
+```dart
+// Create custom provider
+class MyCustomCacheProvider implements GifCacheProvider {
+  @override
+  Future<void> add(String key, Uint8List bytes) async {
+    // Custom cache implementation
+  }
+
+  @override
+  Future<Uint8List?> get(String key) async {
+    // Custom retrieval implementation
+  }
+
+  @override
+  Future<void> clear() async {
+    // Custom clear implementation
+  }
+}
+
+// Set custom provider
+GifView.setCacheProvider(MyCustomCacheProvider());
+
+// Revert to default provider
+GifView.setCacheProvider(null);
 ```

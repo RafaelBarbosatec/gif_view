@@ -12,8 +12,8 @@ class GifLoader {
 
   GifCacheProvider _cacheProvider = MemoryCacheProvider();
 
-  void setCacheProvider(GifCacheProvider provider) {
-    _cacheProvider = provider;
+  void setCacheProvider(GifCacheProvider? provider) {
+    _cacheProvider = provider ?? MemoryCacheProvider();
   }
 
   factory GifLoader() {
@@ -36,6 +36,10 @@ class GifLoader {
     }
 
     return data;
+  }
+
+  Future<void> clearCache() {
+    return _cacheProvider.clear();
   }
 
   String _getKeyImage(ImageProvider provider) {

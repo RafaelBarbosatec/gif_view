@@ -2,7 +2,8 @@ import 'dart:typed_data';
 
 abstract class GifCacheProvider {
   Future<Uint8List?> get(String key);
-  void set(String key, Uint8List data);
+  Future<void> set(String key, Uint8List data);
+  Future<void> clear();
 }
 
 class MemoryCacheProvider extends GifCacheProvider {
@@ -14,7 +15,12 @@ class MemoryCacheProvider extends GifCacheProvider {
   }
 
   @override
-  void set(String key, Uint8List data) {
+  Future<void> set(String key, Uint8List data) async {
     _cache[key] = data;
+  }
+
+  @override
+  Future<void> clear() async {
+    _cache.clear();
   }
 }
