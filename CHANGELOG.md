@@ -8,8 +8,6 @@
     - Rename error param to errorBuilder
     - Raneme repeat param to imageRepeat;
 
-
-
 ## 0.4.4
 
 * Fix issue [#20](https://github.com/RafaelBarbosatec/gif_view/issues/20)
