@@ -7,7 +7,7 @@ class GifController extends ChangeNotifier {
   List<GifFrame> _frames = [];
   int _currentIndex = 0;
   GifStatus status = GifStatus.loading;
-  Exception? exception;
+  Object? exception;
 
   VoidCallback? _onFinish;
   VoidCallback? _onStart;
@@ -150,7 +150,7 @@ class GifController extends ChangeNotifier {
     }
   }
 
-  void error(Exception e) {
+  void error(Object e) {
     if (_isDisposed) {
       return;
     }

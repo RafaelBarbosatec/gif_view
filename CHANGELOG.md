@@ -1,3 +1,7 @@
+## 1.0.1
+
+* Fix issue [#32](https://github.com/RafaelBarbosatec/gif_view/issues/32)
+
 ## 1.0.0
 
 * Adds `GifCacheProvider`.
