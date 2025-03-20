@@ -17,8 +17,91 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'GifView Demo'),
+      home: const MyHomePage(
+        title: 'Gif View Example',
+      ),
     );
+  }
+}
+
+List<String> gifs = [
+  'assets/gif1.gif',
+  'https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif?cid=790b7611inzoz5yw2ba2rp3pjak43bxvun5rjnrzj6ybli8g&ep=v1_gifs_search&rid=giphy.gif&ct=g',
+  'https://user-images.githubusercontent.com/53127751/201799963-23725770-a848-42a4-9593-20b835c7e238.png',
+  'https://media.giphy.com/media/rdma0nDFZMR32/giphy.gif?cid=790b7611vcvs5r1arjpbqdgmame2a11h3w6pkn5wbi2aeugl&ep=v1_gifs_search&rid=giphy.gif&ct=g',
+];
+
+class PreCachePage extends StatefulWidget {
+  const PreCachePage({Key? key}) : super(key: key);
+
+  @override
+  State<PreCachePage> createState() => _PreCachePageState();
+}
+
+class _PreCachePageState extends State<PreCachePage> {
+  ValueNotifier<String> gifLoading = ValueNotifier<String>('');
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            FutureBuilder(
+              future: _preCacheGif(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  return ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MyHomePage(
+                            title: 'Gif View Example',
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text('Gif View Example with controller'),
+                  );
+                }
+                return Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'Pre-caching gifs...',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      ValueListenableBuilder(
+                        valueListenable: gifLoading,
+                        builder: (context, value, child) {
+                          return Text('$value');
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      const CircularProgressIndicator(),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _preCacheGif() async {
+    for (final gif in gifs) {
+      ImageProvider provider = (gif.startsWith('http')
+          ? NetworkImage(gif)
+          : AssetImage(gif)) as ImageProvider;
+      gifLoading.value = gif;
+      await GifView.preFetchImage(provider);
+    }
   }
 }
 
@@ -49,7 +132,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           const Divider(),
           GifView.asset(
-            'assets/gif1.gif',
+            gifs[0],
             height: 200,
             frameRate: 30,
           ),
@@ -67,11 +150,11 @@ class _MyHomePageState extends State<MyHomePage> {
             physics: const NeverScrollableScrollPhysics(),
             children: [
               GifView.network(
-                'https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif?cid=790b7611inzoz5yw2ba2rp3pjak43bxvun5rjnrzj6ybli8g&ep=v1_gifs_search&rid=giphy.gif&ct=g',
+                gifs[1],
                 height: 200,
               ),
               GifView.network(
-                'https://user-images.githubusercontent.com/53127751/201799963-23725770-a848-42a4-9593-20b835c7e238.png',
+                gifs[2],
                 height: 200,
                 progressBuilder: (context) => const Center(
                   child: CircularProgressIndicator(),
@@ -90,7 +173,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
               ),
               GifView.network(
-                'https://media.giphy.com/media/rdma0nDFZMR32/giphy.gif?cid=790b7611vcvs5r1arjpbqdgmame2a11h3w6pkn5wbi2aeugl&ep=v1_gifs_search&rid=giphy.gif&ct=g',
+                gifs[3],
                 height: 200,
               ),
             ],
