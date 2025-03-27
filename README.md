@@ -147,6 +147,8 @@ await GifView.preFetch(AssetImage('my/path/item.gif'));
 await GifView.preFetch(NetworkImage('http://my/path/item.gif'));
 // Memory
 await GifView.preFetch(MemoryImage(Uint8List()));
+// File
+await GifView.preFetch(FileImage(File()));
 ```
 
 ### Custom Cache Provider
