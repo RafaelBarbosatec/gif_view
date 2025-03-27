@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -11,6 +12,8 @@ class GifLoader {
   static final GifLoader instance = GifLoader._internal();
 
   GifCacheProvider _cacheProvider = MemoryCacheProvider();
+
+  final Map<String, Completer<Uint8List?>> _loadCompleters = {};
 
   void setCacheProvider(GifCacheProvider? provider) {
     _cacheProvider = provider ?? MemoryCacheProvider();
@@ -30,12 +33,13 @@ class GifLoader {
       return cache;
     }
 
-    Uint8List? data = await _loadImageBytes(provider);
-    if (data != null) {
-      _cacheProvider.set(key, data);
+    if (_loadCompleters[key] != null) {
+      return _loadCompleters[key]!.future;
     }
 
-    return data;
+    _loadCompleters[key] = Completer();
+    _load(provider, key, _loadCompleters[key]!);
+    return _loadCompleters[key]!.future;
   }
 
   Future<void> clearCache() {
@@ -75,5 +79,22 @@ class GifLoader {
       return Future.value(provider.bytes);
     }
     return Future.value(null);
+  }
+
+  void _load(
+    ImageProvider<Object> provider,
+    String key,
+    Completer<Uint8List?> completer,
+  ) async {
+    try {
+      Uint8List? data = await _loadImageBytes(provider);
+      if (data != null) {
+        _cacheProvider.set(key, data);
+      }
+      completer.complete(data);
+      _loadCompleters.remove(key);
+    } catch (e) {
+      completer.completeError(e);
+    }
   }
 }

@@ -141,7 +141,12 @@ GifView provides a static `preFetch` method to load and cache GIF images ahead o
 
 ```dart
 // Pre-fetch single or multiple GIFs
-await GifView.preFetch(ImageProvider());
+// Asset
+await GifView.preFetch(AssetImage('my/path/item.gif'));
+// Network
+await GifView.preFetch(NetworkImage('http://my/path/item.gif'));
+// Memory
+await GifView.preFetch(MemoryImage(Uint8List()));
 ```
 
 ### Custom Cache Provider
