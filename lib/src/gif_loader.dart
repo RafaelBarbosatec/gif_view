@@ -66,16 +66,19 @@ class GifLoader {
       return http
           .get(resolved, headers: provider.headers)
           .then((value) => value.bodyBytes);
-    } else if (provider is AssetImage) {
+    }
+    if (provider is AssetImage) {
       return provider.obtainKey(const ImageConfiguration()).then(
         (value) async {
           final d = await value.bundle.load(value.name);
           return d.buffer.asUint8List();
         },
       );
-    } else if (provider is FileImage) {
+    }
+    if (provider is FileImage) {
       return provider.file.readAsBytes();
-    } else if (provider is MemoryImage) {
+    }
+    if (provider is MemoryImage) {
       return Future.value(provider.bytes);
     }
     return Future.value(null);
