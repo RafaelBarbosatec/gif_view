@@ -1,4 +1,4 @@
-## NEXT
+## 1.0.2
 * Loader improvements
 
 ## 1.0.1
